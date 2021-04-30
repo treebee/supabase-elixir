@@ -38,4 +38,18 @@ defmodule Supabase.Connection do
 
     Req.request!(:delete, url, headers: [{"Authorization", "Bearer #{conn.api_key}"}])
   end
+
+  @spec create_list_response(Finch.Response.t(), module()) ::
+          {:error, %{body: map(), status: integer()}} | {:ok, list()}
+  def create_list_response(%Finch.Response{body: body, status: 200}, module) do
+    {:ok,
+     body
+     |> Stream.map(&Jason.encode!/1)
+     |> Stream.map(&Jason.decode!(&1, keys: :atoms))
+     |> Enum.map(&module.new/1)}
+  end
+
+  def create_list_response(%Finch.Response{body: body, status: status}, _module) do
+    {:error, %{body: body, status: status}}
+  end
 end

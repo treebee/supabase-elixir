@@ -7,7 +7,7 @@ defmodule Supabase.Storage.Buckets do
   @spec list(Connection.t()) :: {:ok, list(Bucket.t())} | {:error, map()}
   def list(%Connection{} = conn) do
     Connection.get(conn, @endpoint)
-    |> create_list_response()
+    |> Connection.create_list_response(Bucket)
   end
 
   @spec get(Connection.t(), String.t()) :: {:error, map()} | {:ok, Bucket.t()}
@@ -58,17 +58,5 @@ defmodule Supabase.Storage.Buckets do
       %Finch.Response{body: body, status: 200} -> {:ok, body}
       %Finch.Response{body: body} -> {:error, body}
     end
-  end
-
-  defp create_list_response(%Finch.Response{body: %{"error" => _error} = body, status: status}) do
-    {:error, %{body: body, status: status}}
-  end
-
-  defp create_list_response(%Finch.Response{body: body, status: 200}) do
-    {:ok,
-     body
-     |> Stream.map(&Jason.encode!/1)
-     |> Stream.map(&Jason.decode!(&1, keys: :atoms))
-     |> Enum.map(&Bucket.new/1)}
   end
 end

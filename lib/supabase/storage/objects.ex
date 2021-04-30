@@ -18,7 +18,7 @@ defmodule Supabase.Storage.Objects do
 
   def list(%Connection{} = conn, bucket, folder) do
     Connection.post(conn, "/storage/v1/object/list/#{bucket}", {:json, %{prefix: folder}})
-    |> create_list_response()
+    |> Connection.create_list_response(Object)
   end
 
   def get(conn, path) do
@@ -40,7 +40,7 @@ defmodule Supabase.Storage.Objects do
   end
 
   @spec create(Connection.t(), String.t() | Bucket.t(), String.t(), String.t()) ::
-          {:error, map()} | {:ok, Tesla.Env.t()}
+          {:error, map()} | {:ok, map()}
   def create(%Connection{} = conn, %Bucket{} = bucket, object_path, file),
     do: create(conn, bucket.name, object_path, file)
 
@@ -64,18 +64,6 @@ defmodule Supabase.Storage.Objects do
       {:ok, %Tesla.Env{body: body}} -> {:ok, Jason.decode!(body)}
       {:error, error} -> {:error, error}
     end
-  end
-
-  defp create_list_response(%Finch.Response{body: body, status: 200}) do
-    {:ok,
-     body
-     |> Stream.map(&Jason.encode!/1)
-     |> Stream.map(&Jason.decode!(&1, keys: :atoms))
-     |> Enum.map(&Object.new/1)}
-  end
-
-  defp create_list_response(%Finch.Response{body: body, status: status}) do
-    {:error, %{body: body, status: status}}
   end
 
   defp split_path(path) do
