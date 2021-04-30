@@ -31,15 +31,16 @@ defmodule Supabase.Storage.ObjectsTest do
           response
       end
 
+    {:ok, bucket} = Buckets.get(conn, @bucket_name)
     object_path = create_object(conn)
 
     # always clean up our test bucket
     on_exit(fn ->
-      Buckets.delete_cascase(conn, @bucket_name)
+      Buckets.delete_cascase(conn, bucket)
     end)
 
     Map.put(context, :conn, conn)
-    |> Map.put(:bucket, @bucket_name)
+    |> Map.put(:bucket, bucket)
     |> Map.put(:object_path, object_path)
   end
 
@@ -56,14 +57,14 @@ defmodule Supabase.Storage.ObjectsTest do
     assert is_binary(object)
   end
 
-  test "copy object", %{conn: conn, object_path: object_path} do
-    [bucket_name, path] = String.split(object_path, "/", parts: 2)
-    {:ok, %{"Key" => dest}} = Objects.copy(conn, bucket_name, path, "my/new/path/unsplash.jpg")
-    assert dest == "#{@bucket_name}/my/new/path/unsplash.jpg"
+  test "copy object", %{conn: conn, bucket: bucket, object_path: object_path} do
+    [_bucket_name, path] = String.split(object_path, "/", parts: 2)
+    {:ok, %{"Key" => dest}} = Objects.copy(conn, bucket, path, "my/new/path/unsplash.jpg")
+    assert dest == "#{bucket.name}/my/new/path/unsplash.jpg"
   end
 
-  test "delete object", %{conn: conn, object_path: object_path} do
-    {:ok, %{"message" => message}} = Objects.delete(conn, @bucket_name, object_path)
+  test "delete object", %{conn: conn, bucket: bucket, object_path: object_path} do
+    {:ok, %{"message" => message}} = Objects.delete(conn, bucket, object_path)
     assert message == "Successfully deleted"
     on_exit(fn -> create_object(conn) end)
   end
@@ -71,5 +72,13 @@ defmodule Supabase.Storage.ObjectsTest do
   test "generate presigned url", %{conn: conn, object_path: object_path} do
     {:ok, %{"signedURL" => signed_url}} = Objects.sign(conn, object_path)
     assert signed_url =~ "token="
+  end
+
+  test "move object", %{conn: conn, bucket: bucket, object_path: object_path} do
+    [_bucket_name, path] = String.split(object_path, "/", parts: 2)
+    new_path = "my/new/path/unsplash.jpg"
+    {:ok, _} = Objects.move(conn, bucket, path, new_path)
+    {:error, _} = Objects.get(conn, object_path)
+    {:ok, _} = Objects.move(conn, bucket, new_path, path)
   end
 end

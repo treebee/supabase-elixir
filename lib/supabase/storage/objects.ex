@@ -84,6 +84,23 @@ defmodule Supabase.Storage.Objects do
     end
   end
 
+  @spec move(Connection.t(), Storage.Bucket.t(), String.t(), String.t()) ::
+          {:error, map()} | {:ok, map()}
+  def move(%Connection{} = conn, %Bucket{} = bucket, source_key, destination_key),
+    do: move(conn, bucket.name, source_key, destination_key)
+
+  def move(%Connection{} = conn, bucket_name, source_key, destination_key) do
+    case Connection.post(
+           conn,
+           "/storage/v1/object/move",
+           {:json,
+            %{bucketId: bucket_name, sourceKey: source_key, destinationKey: destination_key}}
+         ) do
+      %Finch.Response{body: body, status: 200} -> {:ok, body}
+      %Finch.Response{body: body} -> {:error, body}
+    end
+  end
+
   @spec delete(Connection.t(), String.t()) :: {:ok, map()} | {:error, map()}
   def delete(%Connection{} = conn, full_path) do
     [bucket, path] = split_path(full_path)
