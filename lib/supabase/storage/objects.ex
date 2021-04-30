@@ -102,6 +102,32 @@ defmodule Supabase.Storage.Objects do
     end
   end
 
+  @spec sign(Connection.t(), String.t()) :: {:error, map()} | {:ok, map()}
+  def sign(conn, full_path) do
+    [bucket, path] = split_path(full_path)
+    sign(conn, bucket, path)
+  end
+
+  @spec sign(Connection.t(), Bucket.t() | String.t(), String.t(), keyword) ::
+          {:error, map()} | {:ok, map()}
+  def sign(conn, bucket, object_path, opts \\ [])
+
+  def sign(%Connection{} = conn, %Bucket{} = bucket, object_path, opts),
+    do: sign(conn, bucket.name, object_path, opts)
+
+  def sign(%Connection{} = conn, bucket_name, object_path, opts) do
+    expires_in = Keyword.get(opts, :expires_in, 60_000)
+
+    case Connection.post(
+           conn,
+           "/storage/v1/object/sign/#{bucket_name}/#{object_path}",
+           {:json, %{expiresIn: expires_in}}
+         ) do
+      %Finch.Response{body: body, status: 200} -> {:ok, body}
+      %Finch.Response{body: body} -> {:error, body}
+    end
+  end
+
   defp split_path(path) do
     case String.split(path, "/", parts: 2) do
       [bucket] -> [bucket, ""]

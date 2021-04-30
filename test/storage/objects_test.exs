@@ -9,6 +9,11 @@ defmodule Supabase.Storage.ObjectsTest do
   @file_path "test/data/galen-crout-8skNUw3Z1FA-unsplash.jpg"
   @object_path "images/unsplash.jpg"
 
+  defp create_object(conn) do
+    {:ok, %{"Key" => object_path}} = Objects.create(conn, @bucket_name, @object_path, @file_path)
+    object_path
+  end
+
   setup_all context do
     conn =
       Supabase.Connection.new(
@@ -26,7 +31,7 @@ defmodule Supabase.Storage.ObjectsTest do
           response
       end
 
-    {:ok, %{"Key" => object_path}} = Objects.create(conn, @bucket_name, @object_path, @file_path)
+    object_path = create_object(conn)
 
     # always clean up our test bucket
     on_exit(fn ->
@@ -58,9 +63,13 @@ defmodule Supabase.Storage.ObjectsTest do
   end
 
   test "delete object", %{conn: conn, object_path: object_path} do
-    # give supabase some time
-    Process.sleep(500)
-    {:ok, %{"message" => message}} = Objects.delete(conn, "testbucket", object_path)
+    {:ok, %{"message" => message}} = Objects.delete(conn, @bucket_name, object_path)
     assert message == "Successfully deleted"
+    on_exit(fn -> create_object(conn) end)
+  end
+
+  test "generate presigned url", %{conn: conn, object_path: object_path} do
+    {:ok, %{"signedURL" => signed_url}} = Objects.sign(conn, object_path)
+    assert signed_url =~ "token="
   end
 end
