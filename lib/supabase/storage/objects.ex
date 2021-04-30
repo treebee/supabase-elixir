@@ -21,13 +21,14 @@ defmodule Supabase.Storage.Objects do
     |> Connection.create_list_response(Object)
   end
 
+  @spec get(Connection.t(), String.t()) :: {:error, map()} | {:ok, binary()}
   def get(conn, path) do
     [bucket, path] = split_path(path)
 
     get(conn, bucket, path)
   end
 
-  @spec get(Connection.t(), Bucket.t(), Object.t()) :: any
+  @spec get(Connection.t(), Bucket.t(), Object.t()) :: {:error, map()} | {:ok, binary()}
   def get(%Connection{} = conn, %Bucket{} = bucket, %Object{} = object),
     do: get(conn, bucket.name, object.name)
 
@@ -63,6 +64,41 @@ defmodule Supabase.Storage.Objects do
     case Tesla.post(client, "/storage/v1/object/#{Path.join([bucket_name, object_path])}", mp) do
       {:ok, %Tesla.Env{body: body}} -> {:ok, Jason.decode!(body)}
       {:error, error} -> {:error, error}
+    end
+  end
+
+  @spec copy(Connection.t(), Storage.Bucket.t(), String.t(), String.t()) ::
+          {:error, map()} | {:ok, map()}
+  def copy(%Connection{} = conn, %Bucket{} = bucket, source_key, destination_key),
+    do: copy(conn, bucket.name, source_key, destination_key)
+
+  def copy(%Connection{} = conn, bucket_name, source_key, destination_key) do
+    case Connection.post(
+           conn,
+           "/storage/v1/object/copy",
+           {:json,
+            %{bucketId: bucket_name, sourceKey: source_key, destinationKey: destination_key}}
+         ) do
+      %Finch.Response{body: body, status: 200} -> {:ok, body}
+      %Finch.Response{body: body} -> {:error, body}
+    end
+  end
+
+  @spec delete(Connection.t(), String.t()) :: {:ok, map()} | {:error, map()}
+  def delete(%Connection{} = conn, full_path) do
+    [bucket, path] = split_path(full_path)
+    delete(conn, bucket, path)
+  end
+
+  @spec delete(Connection.t(), Bucket.t() | String.t(), String.t()) ::
+          {:ok, map()} | {:error, map()}
+  def delete(%Connection{} = conn, %Bucket{} = bucket, object_path),
+    do: delete(conn, bucket.name, object_path)
+
+  def delete(%Connection{} = conn, bucket_name, object_path) do
+    case Connection.delete(conn, "/storage/v1/object/#{bucket_name}", object_path) do
+      %Finch.Response{status: 200, body: body} -> {:ok, body}
+      %Finch.Response{body: body} -> {:error, body}
     end
   end
 

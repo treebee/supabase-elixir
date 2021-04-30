@@ -35,7 +35,6 @@ defmodule Supabase.Connection do
   @spec delete(Supabase.Connection.t(), String.t() | URI.t(), String.t()) :: any
   def delete(%__MODULE__{} = conn, endpoint, id) do
     url = conn.base_url |> URI.merge(endpoint) |> URI.merge(id)
-
     Req.request!(:delete, url, headers: [{"Authorization", "Bearer #{conn.api_key}"}])
   end
 

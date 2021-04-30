@@ -50,4 +50,17 @@ defmodule Supabase.Storage.ObjectsTest do
     {:ok, object} = Objects.get(conn, object_path)
     assert is_binary(object)
   end
+
+  test "copy object", %{conn: conn, object_path: object_path} do
+    [bucket_name, path] = String.split(object_path, "/", parts: 2)
+    {:ok, %{"Key" => dest}} = Objects.copy(conn, bucket_name, path, "my/new/path/unsplash.jpg")
+    assert dest == "#{@bucket_name}/my/new/path/unsplash.jpg"
+  end
+
+  test "delete object", %{conn: conn, object_path: object_path} do
+    # give supabase some time
+    Process.sleep(500)
+    {:ok, %{"message" => message}} = Objects.delete(conn, "testbucket", object_path)
+    assert message == "Successfully deleted"
+  end
 end
