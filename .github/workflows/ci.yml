@@ -1,0 +1,20 @@
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      MIX_ENV: test
+      SUPABASE_TEST_URL: ${{ secrets.SUPABASE_TEST_URL }}
+      SUPABASE_TEST_KEY: ${{ secrets.SUPABASE_TEST_KEY }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-elixir@v1
+        with:
+          otp-version: "23"
+          elixir-version: "1.11.3"
+          # see: https://github.com/actions/setup-elixir/issues/49
+          experimental-otp: true
+      - run: mix deps.get
+      - run: mix coveralls.github
