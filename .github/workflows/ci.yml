@@ -8,6 +8,7 @@ jobs:
       MIX_ENV: test
       SUPABASE_TEST_URL: ${{ secrets.SUPABASE_TEST_URL }}
       SUPABASE_TEST_KEY: ${{ secrets.SUPABASE_TEST_KEY }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-elixir@v1
