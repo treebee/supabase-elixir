@@ -15,7 +15,7 @@ Other functionality will follow.
 ```elixir
 def deps do
   [
-    {:supabase, "https://github.com/treebee/supabase-elixir.git"}
+    {:supabase, git: "https://github.com/treebee/supabase-elixir"}
   ]
 end
 ```
