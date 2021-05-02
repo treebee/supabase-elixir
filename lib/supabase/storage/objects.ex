@@ -40,18 +40,20 @@ defmodule Supabase.Storage.Objects do
     end
   end
 
-  @spec create(Connection.t(), String.t() | Bucket.t(), String.t(), String.t()) ::
+  @spec create(Connection.t(), String.t() | Bucket.t(), String.t(), String.t(), keyword()) ::
           {:error, map()} | {:ok, map()}
-  def create(%Connection{} = conn, %Bucket{} = bucket, object_path, file),
-    do: create(conn, bucket.name, object_path, file)
+  def create(conn, bucket, object_path, file, opts \\ [])
 
-  def create(%Connection{} = conn, bucket_name, object_path, file) do
+  def create(%Connection{} = conn, %Bucket{} = bucket, object_path, file, opts),
+    do: create(conn, bucket.name, object_path, file, opts)
+
+  def create(%Connection{} = conn, bucket_name, object_path, file, opts) do
     # TODO: figure out how to get multipart working with Req/Finch to avoid the Tesla dependency
     mp =
       Tesla.Multipart.new()
       |> Tesla.Multipart.add_file(file,
         filename: object_path,
-        headers: [{"Content-Type", MIME.from_path(file)}]
+        headers: [{"Content-Type", Keyword.get(opts, :content_type, MIME.from_path(file))}]
       )
 
     middleware = [

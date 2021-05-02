@@ -13,22 +13,44 @@ defmodule Supabase.Connection do
     %Supabase.Connection{base_url: base_url, api_key: api_key}
   end
 
-  @spec post(t(), String.t() | URI.t(), any) :: any
-  def post(%__MODULE__{} = conn, endpoint, body) do
+  @spec post(t(), String.t() | URI.t(), any, list({String.t(), String.t()})) :: any
+  def post(%__MODULE__{} = conn, endpoint, body, headers \\ []) do
+    headers =
+      Map.new([
+        {
+          "Authorization",
+          "Bearer #{conn.api_key}"
+        },
+        {"apiKey", conn.api_key}
+      ])
+      |> Map.merge(Map.new(headers))
+
     Req.post!(
       URI.merge(conn.base_url, endpoint),
       body,
-      headers: [{"Authorization", "Bearer #{conn.api_key}"}]
+      headers: headers
     )
   end
 
-  @spec get(t(), String.t() | URI.t()) :: any
-  def get(%__MODULE__{} = conn, endpoint) do
+  @spec get(t(), String.t() | URI.t(), keyword()) :: any
+  def get(%__MODULE__{} = conn, endpoint, options \\ []) do
+    headers =
+      Map.new([
+        {
+          "Authorization",
+          "Bearer #{conn.api_key}"
+        },
+        {"apiKey", conn.api_key}
+      ])
+      |> Map.merge(Map.new(Keyword.get(options, :headers, [])))
+      |> Map.to_list()
+
     url = URI.merge(conn.base_url, endpoint)
 
     Req.get!(
       url,
-      headers: [{"Authorization", "Bearer #{conn.api_key}"}]
+      params: Keyword.get(options, :params, []),
+      headers: headers
     )
   end
 
