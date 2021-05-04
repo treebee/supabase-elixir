@@ -3,6 +3,8 @@ defmodule Supabase.Storage.Objects do
   alias Supabase.Storage.Bucket
   alias Supabase.Storage.Object
 
+  @endpoint "/storage/v1/object"
+
   # TODO pagination
   def list(conn, path) do
     [bucket, path] = split_path(path)
@@ -17,7 +19,7 @@ defmodule Supabase.Storage.Objects do
     do: list(conn, bucket.name, folder)
 
   def list(%Connection{} = conn, bucket, folder) do
-    Connection.post(conn, "/storage/v1/object/list/#{bucket}", {:json, %{prefix: folder}},
+    Connection.post(conn, "#{@endpoint}/list/#{bucket}", {:json, %{prefix: folder}},
       response_model: Object
     )
   end
@@ -35,7 +37,7 @@ defmodule Supabase.Storage.Objects do
 
   @spec get(Connection.t(), String.t(), String.t()) :: {:error, map()} | {:ok, binary()}
   def get(conn, bucket, object) do
-    Connection.get(conn, "/storage/v1/object/#{bucket}/#{object}")
+    Connection.get(conn, "#{@endpoint}/#{bucket}/#{object}")
   end
 
   @spec create(Connection.t(), String.t() | Bucket.t(), String.t(), String.t(), keyword()) ::
@@ -61,7 +63,7 @@ defmodule Supabase.Storage.Objects do
 
     client = Tesla.client(middleware, {Tesla.Adapter.Finch, [name: Req.Finch]})
 
-    case Tesla.post(client, "/storage/v1/object/#{Path.join([bucket_name, object_path])}", mp) do
+    case Tesla.post(client, "#{@endpoint}/#{Path.join([bucket_name, object_path])}", mp) do
       {:ok, %Tesla.Env{body: body}} -> {:ok, Jason.decode!(body)}
       {:error, error} -> {:error, error}
     end
@@ -75,7 +77,7 @@ defmodule Supabase.Storage.Objects do
   def copy(%Connection{} = conn, bucket_name, source_key, destination_key) do
     Connection.post(
       conn,
-      "/storage/v1/object/copy",
+      "#{@endpoint}/copy",
       {:json, %{bucketId: bucket_name, sourceKey: source_key, destinationKey: destination_key}}
     )
   end
@@ -88,7 +90,7 @@ defmodule Supabase.Storage.Objects do
   def move(%Connection{} = conn, bucket_name, source_key, destination_key) do
     Connection.post(
       conn,
-      "/storage/v1/object/move",
+      "#{@endpoint}/move",
       {:json, %{bucketId: bucket_name, sourceKey: source_key, destinationKey: destination_key}}
     )
   end
@@ -105,7 +107,7 @@ defmodule Supabase.Storage.Objects do
     do: delete(conn, bucket.name, object_path)
 
   def delete(%Connection{} = conn, bucket_name, object_path) do
-    Connection.delete(conn, "/storage/v1/object/#{bucket_name}", object_path)
+    Connection.delete(conn, "#{@endpoint}/#{bucket_name}", object_path)
   end
 
   @spec sign(Connection.t(), String.t()) :: {:error, map()} | {:ok, map()}
@@ -126,7 +128,7 @@ defmodule Supabase.Storage.Objects do
 
     Connection.post(
       conn,
-      "/storage/v1/object/sign/#{bucket_name}/#{object_path}",
+      "#{@endpoint}/sign/#{bucket_name}/#{object_path}",
       {:json, %{expiresIn: expires_in}}
     )
   end
