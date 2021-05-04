@@ -16,23 +16,25 @@ defmodule Supabase.Connection do
     %Supabase.Connection{base_url: base_url, api_key: api_key}
   end
 
-  @spec post(t(), String.t() | URI.t(), any, list({String.t(), String.t()})) :: any
-  def post(%__MODULE__{} = conn, endpoint, body, headers \\ []) do
-    headers =
-      Map.new([
-        {
-          "Authorization",
-          "Bearer #{conn.api_key}"
-        },
-        {"apiKey", conn.api_key}
-      ])
-      |> Map.merge(Map.new(headers))
+  @spec post(t(), String.t() | URI.t(), any, keyword) :: any
+  def post(%__MODULE__{} = conn, endpoint, body, options \\ []) do
+    headers = Keyword.get(options, :headers, [])
+    headers = merge_headers(conn, headers)
+    options = Keyword.put(options, :headers, headers)
 
-    Req.post!(
+    Req.build(
+      :post,
       URI.merge(conn.base_url, endpoint),
-      body,
+      body: body,
       headers: headers
     )
+    |> Req.add_request_steps(request_steps(options))
+    |> Req.add_response_steps([
+      &Req.decompress/2,
+      &decode(&1, &2, options)
+    ])
+    |> Req.run()
+    |> parse_response()
   end
 
   defp request_steps(options) do
@@ -58,7 +60,6 @@ defmodule Supabase.Connection do
       &Req.decompress/2,
       &decode(&1, &2, options)
     ])
-    |> Req.add_error_steps([])
     |> Req.run()
     |> parse_response()
   end

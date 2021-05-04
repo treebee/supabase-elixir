@@ -5,7 +5,7 @@ defmodule Supabase.Storage.ObjectsTest do
   alias Supabase.Storage.Buckets
   alias Supabase.Storage.Objects
 
-  @bucket_name "objects_test_bucket"
+  @bucket_name "testbucket"
   @file_path "test/data/galen-crout-8skNUw3Z1FA-unsplash.jpg"
   @object_path "images/unsplash.jpg"
 
@@ -23,7 +23,7 @@ defmodule Supabase.Storage.ObjectsTest do
 
     {:ok, %{"name" => @bucket_name}} =
       case Buckets.create(conn, @bucket_name) do
-        {:error, %{"error" => "Key (id)=(objects_test_bucket) already exists."}} ->
+        {:error, %{"error" => "Key (id)=(testbucket) already exists."}} ->
           Buckets.delete_cascase(conn, @bucket_name)
           Buckets.create(conn, @bucket_name)
 

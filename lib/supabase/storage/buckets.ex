@@ -16,10 +16,7 @@ defmodule Supabase.Storage.Buckets do
 
   @spec create(Connection.t(), String.t()) :: {:ok, map()} | {:error, map()}
   def create(%Connection{} = conn, name) do
-    case Connection.post(conn, @endpoint, {:json, %{name: name}}) do
-      %Finch.Response{body: body, status: 200} -> {:ok, body}
-      %Finch.Response{body: body} -> {:error, body}
-    end
+    Connection.post(conn, @endpoint, {:json, %{name: name}})
   end
 
   @spec delete(Connection.t(), String.t() | Bucket.t()) :: {:error, map()} | {:ok, map()}
@@ -43,13 +40,10 @@ defmodule Supabase.Storage.Buckets do
   def empty(%Connection{} = conn, %Bucket{} = bucket), do: empty(conn, bucket.name)
 
   def empty(%Connection{} = conn, bucket_name) do
-    case Connection.post(
-           conn,
-           Path.join(@endpoint, bucket_name <> "/empty"),
-           ""
-         ) do
-      %Finch.Response{body: body, status: 200} -> {:ok, body}
-      %Finch.Response{body: body} -> {:error, body}
-    end
+    Connection.post(
+      conn,
+      Path.join(@endpoint, bucket_name <> "/empty"),
+      ""
+    )
   end
 end

@@ -17,8 +17,9 @@ defmodule Supabase.Storage.Objects do
     do: list(conn, bucket.name, folder)
 
   def list(%Connection{} = conn, bucket, folder) do
-    Connection.post(conn, "/storage/v1/object/list/#{bucket}", {:json, %{prefix: folder}})
-    |> Connection.create_list_response(Object)
+    Connection.post(conn, "/storage/v1/object/list/#{bucket}", {:json, %{prefix: folder}},
+      response_model: Object
+    )
   end
 
   @spec get(Connection.t(), String.t()) :: {:error, map()} | {:ok, binary()}
@@ -72,15 +73,11 @@ defmodule Supabase.Storage.Objects do
     do: copy(conn, bucket.name, source_key, destination_key)
 
   def copy(%Connection{} = conn, bucket_name, source_key, destination_key) do
-    case Connection.post(
-           conn,
-           "/storage/v1/object/copy",
-           {:json,
-            %{bucketId: bucket_name, sourceKey: source_key, destinationKey: destination_key}}
-         ) do
-      %Finch.Response{body: body, status: 200} -> {:ok, body}
-      %Finch.Response{body: body} -> {:error, body}
-    end
+    Connection.post(
+      conn,
+      "/storage/v1/object/copy",
+      {:json, %{bucketId: bucket_name, sourceKey: source_key, destinationKey: destination_key}}
+    )
   end
 
   @spec move(Connection.t(), Storage.Bucket.t(), String.t(), String.t()) ::
@@ -89,15 +86,11 @@ defmodule Supabase.Storage.Objects do
     do: move(conn, bucket.name, source_key, destination_key)
 
   def move(%Connection{} = conn, bucket_name, source_key, destination_key) do
-    case Connection.post(
-           conn,
-           "/storage/v1/object/move",
-           {:json,
-            %{bucketId: bucket_name, sourceKey: source_key, destinationKey: destination_key}}
-         ) do
-      %Finch.Response{body: body, status: 200} -> {:ok, body}
-      %Finch.Response{body: body} -> {:error, body}
-    end
+    Connection.post(
+      conn,
+      "/storage/v1/object/move",
+      {:json, %{bucketId: bucket_name, sourceKey: source_key, destinationKey: destination_key}}
+    )
   end
 
   @spec delete(Connection.t(), String.t()) :: {:ok, map()} | {:error, map()}
@@ -134,14 +127,11 @@ defmodule Supabase.Storage.Objects do
   def sign(%Connection{} = conn, bucket_name, object_path, opts) do
     expires_in = Keyword.get(opts, :expires_in, 60_000)
 
-    case Connection.post(
-           conn,
-           "/storage/v1/object/sign/#{bucket_name}/#{object_path}",
-           {:json, %{expiresIn: expires_in}}
-         ) do
-      %Finch.Response{body: body, status: 200} -> {:ok, body}
-      %Finch.Response{body: body} -> {:error, body}
-    end
+    Connection.post(
+      conn,
+      "/storage/v1/object/sign/#{bucket_name}/#{object_path}",
+      {:json, %{expiresIn: expires_in}}
+    )
   end
 
   defp split_path(path) do
