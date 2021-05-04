@@ -105,10 +105,7 @@ defmodule Supabase.Storage.Objects do
     do: delete(conn, bucket.name, object_path)
 
   def delete(%Connection{} = conn, bucket_name, object_path) do
-    case Connection.delete(conn, "/storage/v1/object/#{bucket_name}", object_path) do
-      %Finch.Response{status: 200, body: body} -> {:ok, body}
-      %Finch.Response{body: body} -> {:error, body}
-    end
+    Connection.delete(conn, "/storage/v1/object/#{bucket_name}", object_path)
   end
 
   @spec sign(Connection.t(), String.t()) :: {:error, map()} | {:ok, map()}

@@ -37,15 +37,6 @@ defmodule Supabase.Connection do
     |> parse_response()
   end
 
-  defp request_steps(options) do
-    [
-      &Req.normalize_headers/1,
-      &Req.default_headers/1,
-      &Req.encode/1
-    ] ++
-      maybe_steps(options[:params], [&Req.params(&1, options[:params])])
-  end
-
   @spec get(t(), String.t() | URI.t(), keyword) :: any
   def get(%__MODULE__{} = conn, endpoint, options \\ []) do
     url = URI.merge(conn.base_url, endpoint)
@@ -67,7 +58,9 @@ defmodule Supabase.Connection do
   @spec delete(Supabase.Connection.t(), String.t() | URI.t(), String.t()) :: any
   def delete(%__MODULE__{} = conn, endpoint, id) do
     url = conn.base_url |> URI.merge(endpoint) |> URI.merge(id)
+
     Req.request!(:delete, url, headers: [{"Authorization", "Bearer #{conn.api_key}"}])
+    |> parse_response()
   end
 
   @spec create_list_response(Finch.Response.t(), module()) ::
@@ -128,4 +121,13 @@ defmodule Supabase.Connection do
     do: {:ok, body}
 
   defp parse_response({_, %Finch.Response{body: body}}), do: {:error, body}
+
+  defp request_steps(options) do
+    [
+      &Req.normalize_headers/1,
+      &Req.default_headers/1,
+      &Req.encode/1
+    ] ++
+      maybe_steps(options[:params], [&Req.params(&1, options[:params])])
+  end
 end
