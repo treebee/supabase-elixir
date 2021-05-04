@@ -63,48 +63,27 @@ defmodule Supabase.Connection do
     |> parse_response()
   end
 
-  @spec create_list_response(Finch.Response.t(), module()) ::
-          {:error, %{body: map(), status: integer()}} | {:ok, list()}
-  def create_list_response(%Finch.Response{body: body, status: 200}, module) do
-    {:ok,
-     body
-     |> Stream.map(&Jason.encode!/1)
-     |> Stream.map(&Jason.decode!(&1, keys: :atoms))
-     |> Enum.map(&module.new/1)}
-  end
-
-  def create_list_response(%Finch.Response{body: body, status: status}, _module) do
-    {:error, %{body: body, status: status}}
-  end
-
-  def put_header(request, []), do: request
-
-  def put_header(request, [{name, value} | rest]) do
-    update_in(request.headers, &[{name, value} | &1])
-    |> put_header(rest)
-  end
-
-  def decode_response(body, response_model) do
+  defp decode_response(body, response_model) do
     case Jason.decode!(body, keys: :atoms) do
       [_ | _] = body -> Enum.map(body, &response_model.new/1)
       body -> response_model.new(body)
     end
   end
 
-  def decode(request, %Finch.Response{status: status} = response, options) when status < 300 do
+  defp decode(request, %Finch.Response{status: status} = response, options) when status < 300 do
     case Keyword.get(options, :response_model) do
       nil -> decode(request, response)
       response_model -> {request, update_in(response.body, &decode_response(&1, response_model))}
     end
   end
 
-  def decode(request, response, _options), do: decode(request, response)
-  def decode(request, response), do: Req.decode(request, response)
+  defp decode(request, response, _options), do: decode(request, response)
+  defp decode(request, response), do: Req.decode(request, response)
 
   defp auth_headers(conn),
     do: [{"authorization", "Bearer #{conn.api_key}"}, {"apikey", conn.api_key}]
 
-  def merge_headers(conn, headers) do
+  defp merge_headers(conn, headers) do
     headers =
       headers
       |> Enum.map(fn {name, value} -> {String.downcase(name), value} end)
