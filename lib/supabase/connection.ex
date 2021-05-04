@@ -96,10 +96,12 @@ defmodule Supabase.Connection do
   defp maybe_steps(false, _step), do: []
   defp maybe_steps(_, steps), do: steps
 
-  defp parse_response({_, %Finch.Response{body: body, status: status}}) when status < 400,
+  defp parse_response({_, resp}), do: parse_response(resp)
+
+  defp parse_response(%Finch.Response{body: body, status: status}) when status < 400,
     do: {:ok, body}
 
-  defp parse_response({_, %Finch.Response{body: body}}), do: {:error, body}
+  defp parse_response(%Finch.Response{body: body}), do: {:error, body}
 
   defp request_steps(options) do
     [

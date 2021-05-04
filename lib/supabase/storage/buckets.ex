@@ -23,10 +23,7 @@ defmodule Supabase.Storage.Buckets do
   def delete(%Connection{} = conn, %Bucket{} = bucket), do: delete(conn, bucket.name)
 
   def delete(%Connection{} = conn, bucket) do
-    case Connection.delete(conn, @endpoint, bucket) do
-      %Finch.Response{body: body, status: 200} -> {:ok, body}
-      %Finch.Response{body: body} -> {:error, body}
-    end
+    Connection.delete(conn, @endpoint, bucket)
   end
 
   @spec delete_cascase(Connection.t(), String.t() | Bucket.t()) :: {:error, map()} | {:ok, map()}
