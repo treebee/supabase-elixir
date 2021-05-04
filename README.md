@@ -2,6 +2,8 @@
 
 A Supabase client for Elixir.
 
+[![.github/workflows/ci.yml](https://github.com/treebee/supabase-elixir/actions/workflows/ci.yml/badge.svg)](https://github.com/treebee/supabase-elixir/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/treebee/supabase-elixir/badge.svg?branch=main)](https://coveralls.io/github/treebee/supabase-elixir?branch=main)
+
 ## Status
 
 Early work in progress.
