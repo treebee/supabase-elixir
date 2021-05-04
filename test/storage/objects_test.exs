@@ -5,7 +5,7 @@ defmodule Supabase.Storage.ObjectsTest do
   alias Supabase.Storage.Buckets
   alias Supabase.Storage.Objects
 
-  @bucket_name "testbucket"
+  @bucket_name "objects_test_bucket"
   @file_path "test/data/galen-crout-8skNUw3Z1FA-unsplash.jpg"
   @object_path "images/unsplash.jpg"
 
@@ -23,7 +23,7 @@ defmodule Supabase.Storage.ObjectsTest do
 
     {:ok, %{"name" => @bucket_name}} =
       case Buckets.create(conn, @bucket_name) do
-        {:error, %{"error" => "Key (id)=(testbucket) already exists."}} ->
+        {:error, %{"error" => "Key (id)=(objects_test_bucket) already exists."}} ->
           Buckets.delete_cascase(conn, @bucket_name)
           Buckets.create(conn, @bucket_name)
 
@@ -59,8 +59,8 @@ defmodule Supabase.Storage.ObjectsTest do
 
   test "copy object", %{conn: conn, bucket: bucket, object_path: object_path} do
     [_bucket_name, path] = String.split(object_path, "/", parts: 2)
-    {:ok, %{"Key" => dest}} = Objects.copy(conn, bucket, path, "my/new/path/unsplash.jpg")
-    assert dest == "#{bucket.name}/my/new/path/unsplash.jpg"
+    {:ok, %{"Key" => dest}} = Objects.copy(conn, bucket, path, "my/copy/unsplash.jpg")
+    assert dest == "#{bucket.name}/my/copy/unsplash.jpg"
   end
 
   test "delete object", %{conn: conn, bucket: bucket, object_path: object_path} do

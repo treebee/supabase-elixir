@@ -6,19 +6,12 @@ defmodule Supabase.Storage.Buckets do
 
   @spec list(Connection.t()) :: {:ok, list(Bucket.t())} | {:error, map()}
   def list(%Connection{} = conn) do
-    Connection.get(conn, @endpoint)
-    |> Connection.create_list_response(Bucket)
+    Connection.get(conn, @endpoint, response_model: Bucket)
   end
 
   @spec get(Connection.t(), String.t()) :: {:error, map()} | {:ok, Bucket.t()}
   def get(%Connection{} = conn, bucket) do
-    case Connection.get(conn, @endpoint <> bucket) do
-      %Finch.Response{body: body, status: 200} ->
-        {:ok, body |> Jason.encode!() |> Jason.decode!(keys: :atoms) |> Bucket.new()}
-
-      %Finch.Response{body: body} ->
-        {:error, body}
-    end
+    Connection.get(conn, @endpoint <> bucket, response_model: Bucket)
   end
 
   @spec create(Connection.t(), String.t()) :: {:ok, map()} | {:error, map()}

@@ -34,10 +34,7 @@ defmodule Supabase.Storage.Objects do
 
   @spec get(Connection.t(), String.t(), String.t()) :: {:error, map()} | {:ok, binary()}
   def get(conn, bucket, object) do
-    case Connection.get(conn, "/storage/v1/object/#{bucket}/#{object}") do
-      %Finch.Response{status: 200, body: body} -> {:ok, body}
-      %Finch.Response{body: body} -> {:error, body}
-    end
+    Connection.get(conn, "/storage/v1/object/#{bucket}/#{object}")
   end
 
   @spec create(Connection.t(), String.t() | Bucket.t(), String.t(), String.t(), keyword()) ::
