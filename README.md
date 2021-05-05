@@ -8,9 +8,21 @@ A Supabase client for Elixir.
 
 Early work in progress.
 
-Only the [storage](https://supabase.io/storage) OpenAPI [spec](https://supabase.github.io/storage-api/#/) is implemented.
+### Storage
 
-Other functionality will follow.
+Implements the [storage](https://supabase.io/storage) OpenAPI [spec](https://supabase.github.io/storage-api/#/), see examples below.
+Another API reflecting the one of the JS client will follow.
+
+### Auth (GoTrue)
+
+Directly uses [gotrue-elixir](https://github.com/joshnuss/gotrue-elixir) as
+
+```elixir
+Supabase.auth()
+
+# e.g.
+Supabase.auth().get_user("my-jwt-token")
+```
 
 ## Installation
 

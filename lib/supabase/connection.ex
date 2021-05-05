@@ -9,7 +9,12 @@ defmodule Supabase.Connection do
   ]
 
   @spec new :: t()
-  def new(), do: new(System.get_env("SUPABASE_URL"), System.get_env("SUPABASE_KEY"))
+  def new(),
+    do:
+      new(
+        Application.fetch_env!(:supabase, :base_url),
+        Application.fetch_env!(:supabase, :api_key)
+      )
 
   @spec new(String.t(), String.t()) :: t()
   def new(base_url, api_key) do

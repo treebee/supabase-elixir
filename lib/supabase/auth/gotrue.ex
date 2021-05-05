@@ -1,6 +1,9 @@
 defmodule Supabase.Auth.GoTrue do
   alias Supabase.Connection
 
+  # deprecated in favor of "gotrue-elixir"
+  # see Supabase.auth()
+
   @spec send_magic_link_email(Connection.t(), String.t()) :: any
   def send_magic_link_email(%Connection{} = conn, email) do
     Connection.post(conn, "/auth/v1/magiclink", {:json, %{email: email}})

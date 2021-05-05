@@ -35,6 +35,9 @@ defmodule Supabase.MixProject do
       {:req, git: "https://github.com/wojtekmach/req.git"},
       {:mime, "~> 1.2"},
       {:tesla, "~> 1.4.0"},
+      # {:gotrue, "~> 0.1.2"},
+      # use forked version until PR is merged
+      {:gotrue, github: "treebee/gotrue-elixir", branch: "configurable-auth-header"},
       {:excoveralls, "~> 0.13", only: :test}
     ]
   end
