@@ -17,13 +17,15 @@ defmodule Supabase do
   """
   def init(options \\ []) do
     schema = Keyword.get(options, :schema, "public")
-    jwt = Keyword.get(options, :access_token, Application.get_env(:supabase, :api_key))
+    api_key = Application.get_env(:supabase, :api_key)
+    jwt = Keyword.get(options, :access_token, api_key)
     url = URI.merge(Application.fetch_env!(:supabase, :base_url), "/rest/v1")
 
-    req = Postgrestex.init(schema, url)
-    update_in(req.headers, &Map.merge(&1, %{apikey: jwt}))
-    # sets the wrong header
-    # |> Postgrestex.auth(jwt)
+    req =
+      Postgrestex.init(schema, url)
+      |> Postgrestex.auth(jwt)
+
+    update_in(req.headers, &Map.merge(&1, %{apikey: api_key}))
   end
 
   def json(%HTTPoison.Response{body: body, status_code: status}) do
