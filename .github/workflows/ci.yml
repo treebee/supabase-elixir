@@ -15,7 +15,5 @@ jobs:
         with:
           otp-version: "23"
           elixir-version: "1.11.3"
-          # see: https://github.com/actions/setup-elixir/issues/49
-          experimental-otp: true
       - run: mix deps.get
       - run: mix coveralls.github
