@@ -110,7 +110,7 @@ Supabase.auth().get_user("my-jwt-token")
 ```elixir
 def deps do
   [
-    {:supabase, git: "https://github.com/treebee/supabase-elixir"}
+    {:supabase, github: "treebee/supabase-elixir"}
   ]
 end
 ```
