@@ -4,39 +4,45 @@ A Supabase client for Elixir.
 
 [![.github/workflows/ci.yml](https://github.com/treebee/supabase-elixir/actions/workflows/ci.yml/badge.svg)](https://github.com/treebee/supabase-elixir/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/treebee/supabase-elixir/badge.svg?branch=main)](https://coveralls.io/github/treebee/supabase-elixir?branch=main)
 
-## Status
+**Early work in progress.**
 
-Early work in progress.
+## Database
 
-### Storage
+Uses [postgrest-ex](https://github.com/J0/postgrest-ex):
+
+```elixir
+import Supabase
+import Postgrestex
+
+Supabase.init()
+|> from("profiles")
+|> eq("Username", "Patrick")
+|> call()
+|> json()
+%{
+  body: [
+    %{
+      "avatar_url" => "avatar.jpeg",
+      "id" => "blabla7d-411d-4ead-83d0-452343b",
+      "updated_at" => "2021-05-02T21:05:37.258616+00:00",
+      "username" => "Patrick",
+      "website" => "https://patrick-muehlbauer.com"
+    }
+  ],
+  status: 200
+}
+
+# Or when in a user context with available JWT
+Supabase.init(access_token: session.access_token)
+
+# To use another schema than 'public'
+Supabase.init('other_schema')
+```
+
+## Storage
 
 Implements the [storage](https://supabase.io/storage) OpenAPI [spec](https://supabase.github.io/storage-api/#/), see examples below.
 Another API reflecting the one of the JS client will follow.
-
-### Auth (GoTrue)
-
-Directly uses [gotrue-elixir](https://github.com/joshnuss/gotrue-elixir) as
-
-```elixir
-Supabase.auth()
-
-# e.g.
-Supabase.auth().get_user("my-jwt-token")
-```
-
-## Installation
-
-```elixir
-def deps do
-  [
-    {:supabase, git: "https://github.com/treebee/supabase-elixir"}
-  ]
-end
-```
-
-## Usage
-
-The following requires a project and expects disabled _Row Level Security_ for `BUCKETS` and `OBJECTS`.
 
 ### Create a Connection
 
@@ -86,6 +92,27 @@ iex> {:ok, objects} = Supabase.Storage.Objects.list(conn, bucket, "images")
      updated_at: "2021-04-30T16:53:46.41036+00:00"
    }
  ]}
+```
+
+### Auth (GoTrue)
+
+Directly uses [gotrue-elixir](https://github.com/joshnuss/gotrue-elixir) as
+
+```elixir
+Supabase.auth()
+
+# e.g.
+Supabase.auth().get_user("my-jwt-token")
+```
+
+## Installation
+
+```elixir
+def deps do
+  [
+    {:supabase, git: "https://github.com/treebee/supabase-elixir"}
+  ]
+end
 ```
 
 ## Testing

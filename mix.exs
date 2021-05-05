@@ -38,6 +38,7 @@ defmodule Supabase.MixProject do
       # {:gotrue, "~> 0.1.2"},
       # use forked version until PR is merged
       {:gotrue, github: "treebee/gotrue-elixir", branch: "configurable-auth-header"},
+      {:postgrestex, "~> 0.1.1"},
       {:excoveralls, "~> 0.13", only: :test}
     ]
   end
