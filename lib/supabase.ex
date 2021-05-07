@@ -3,8 +3,6 @@ defmodule Supabase do
   Elixir library for `Supabase`.
   """
 
-  def auth(), do: GoTrue
-
   @doc """
   Entrypoint for implementing the same API the JS library does.
   """
@@ -19,7 +17,7 @@ defmodule Supabase do
     schema = Keyword.get(options, :schema, "public")
     api_key = Application.get_env(:supabase, :api_key)
     jwt = Keyword.get(options, :access_token, api_key)
-    url = URI.merge(Application.fetch_env!(:supabase, :base_url), "/rest/v1")
+    url = URI.merge(Application.get_env(:supabase, :base_url), "/rest/v1")
 
     req =
       Postgrestex.init(schema, url)
