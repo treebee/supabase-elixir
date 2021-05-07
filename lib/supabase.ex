@@ -14,13 +14,17 @@ defmodule Supabase do
 
   """
   def init(options \\ []) do
+    api_key = Application.fetch_env!(:supabase, :api_key)
+    url = Application.fetch_env!(:supabase, :base_url)
+    init(url, api_key, options)
+  end
+
+  def init(base_url, api_key, options \\ []) do
     schema = Keyword.get(options, :schema, "public")
-    api_key = Application.get_env(:supabase, :api_key)
     jwt = Keyword.get(options, :access_token, api_key)
-    url = URI.merge(Application.get_env(:supabase, :base_url), "/rest/v1")
 
     req =
-      Postgrestex.init(schema, url)
+      Postgrestex.init(schema, URI.merge(base_url, "/rest/v1"))
       |> Postgrestex.auth(jwt)
 
     update_in(req.headers, &Map.merge(&1, %{apikey: api_key}))

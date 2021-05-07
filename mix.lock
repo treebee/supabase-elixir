@@ -13,7 +13,7 @@
   "metrics": {:hex, :metrics, "1.0.1", "25f094dea2cda98213cecc3aeff09e940299d950904393b2a29d191c346a8486", [:rebar3], [], "hexpm", "69b09adddc4f74a40716ae54d140f93beb0fb8978d8636eaded0c31b6f099f16"},
   "mime": {:hex, :mime, "1.6.0", "dabde576a497cef4bbdd60aceee8160e02a6c89250d6c0b29e56c0dfb00db3d2", [:mix], [], "hexpm", "31a1a8613f8321143dde1dafc36006a17d28d02bdfecb9e95a880fa7aabd19a7"},
   "mimerl": {:hex, :mimerl, "1.2.0", "67e2d3f571088d5cfd3e550c383094b47159f3eee8ffa08e64106cdf5e981be3", [:rebar3], [], "hexpm", "f278585650aa581986264638ebf698f8bb19df297f66ad91b18910dfc6e19323"},
-  "mint": {:git, "https://github.com/elixir-mint/mint.git", "976ba34d5b631d82274fc04b61f3c310bf8655c3", []},
+  "mint": {:hex, :mint, "1.3.0", "396b3301102f7b775e103da5a20494b25753aed818d6d6f0ad222a3a018c3600", [:mix], [{:castore, "~> 0.1.0", [hex: :castore, repo: "hexpm", optional: true]}], "hexpm", "a9aac960562e43ca69a77e5176576abfa78b8398cec5543dd4fb4ab0131d5c1e"},
   "multipart": {:hex, :multipart, "0.1.1", "952c6aeb41c762d1ea9776c891754cfb61962c9d7b0f84fb63454779910b379d", [:mix], [{:mime, "~> 1.2", [hex: :mime, repo: "hexpm", optional: false]}], "hexpm", "bc349da107810c220ef0366724e445a1a2a39e6be3a361c6a141e0d507eee157"},
   "nimble_options": {:hex, :nimble_options, "0.3.5", "a4f6820cdcb4ee444afd78635f323e58e8a5ddf2fbbe9b9d283a99f972034bae", [:mix], [], "hexpm", "f5507cc90033a8d12769522009c80aa9164af6bab245dbd4ad421d008455f1e1"},
   "nimble_pool": {:hex, :nimble_pool, "0.2.4", "1db8e9f8a53d967d595e0b32a17030cdb6c0dc4a451b8ac787bf601d3f7704c3", [:mix], [], "hexpm", "367e8071e137b787764e6a9992ccb57b276dc2282535f767a07d881951ebeac6"},

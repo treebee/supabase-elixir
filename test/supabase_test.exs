@@ -6,7 +6,7 @@ defmodule SupabaseTest do
 
   test "postgrest integration" do
     response =
-      Supabase.init()
+      Supabase.init(System.get_env("SUPABASE_TEST_URL"), System.get_env("SUPABASE_TEST_KEY"))
       |> from("profiles")
       |> call()
       |> json()

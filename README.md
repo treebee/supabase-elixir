@@ -39,6 +39,12 @@ Supabase.init(access_token: session.access_token)
 Supabase.init('other_schema')
 ```
 
+### Not depending on Application config
+
+```elixir
+Supabase.init("https://my-project.supabase.co", "my-api-key")
+```
+
 ## Storage
 
 Implements the [storage](https://supabase.io/storage) OpenAPI [spec](https://supabase.github.io/storage-api/#/), see examples below.
