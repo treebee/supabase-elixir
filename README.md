@@ -6,6 +6,15 @@ A Supabase client for Elixir.
 
 **Early work in progress.**
 
+## Auth / GoTrue
+
+Uses [gotrue-elixir](https://github.com/joshnuss/gotrue-elixir)
+
+```elixir
+Supabase.auth("https://my-project.supabase.co", "my-api-key")
+|> GoTrue.settings()
+```
+
 ## Database
 
 Uses [postgrest-ex](https://github.com/J0/postgrest-ex):
