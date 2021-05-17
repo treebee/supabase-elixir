@@ -63,16 +63,30 @@ defmodule Supabase do
     update_in(req.headers, &Map.merge(&1, %{apikey: api_key}))
   end
 
-  def json(%HTTPoison.Response{body: body, status_code: status}) do
-    %{body: decode_body(body), status: status}
+  @spec json({:ok, HTTPoison.Response.t()} | HTTPoison.Response.t()) :: %{
+          body: map() | list(),
+          status: integer()
+        }
+  def json(_response, options \\ [])
+
+  def json({:ok, %HTTPoison.Response{} = response}, options) do
+    json(response, options)
   end
 
-  defp decode_body(body) do
-    {_, body} = Jason.decode(body)
+  def json(%HTTPoison.Response{body: body, status_code: status}, options) do
+    %{body: decode_body(body, options), status: status}
+  end
+
+  defp decode_body(body, options) do
+    {_, body} = Jason.decode(body, options)
     body
   end
 
   defp connection_details() do
     {Application.fetch_env!(:supabase, :base_url), Application.fetch_env!(:supabase, :api_key)}
+  end
+
+  def storage_url() do
+    URI.merge(Application.fetch_env!(:supabase, :base_url), "/storage/v1") |> URI.to_string()
   end
 end
