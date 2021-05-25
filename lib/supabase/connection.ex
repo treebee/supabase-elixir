@@ -1,24 +1,23 @@
 defmodule Supabase.Connection do
   @type t :: %__MODULE__{
           base_url: String.t(),
-          api_key: String.t()
+          api_key: String.t(),
+          access_key: String.t()
         }
-  defstruct [
-    :base_url,
-    :api_key
-  ]
+  defstruct [:base_url, :api_key, :access_key]
 
   @spec new :: t()
-  def new(),
-    do:
-      new(
-        Application.fetch_env!(:supabase, :base_url),
-        Application.fetch_env!(:supabase, :api_key)
-      )
+  def new() do
+    new(
+      Application.fetch_env!(:supabase, :base_url),
+      Application.fetch_env!(:supabase, :api_key),
+      Application.fetch_env!(:supabase, :api_key)
+    )
+  end
 
-  @spec new(String.t(), String.t()) :: t()
-  def new(base_url, api_key) do
-    %Supabase.Connection{base_url: base_url, api_key: api_key}
+  @spec new(String.t(), String.t(), String.t()) :: t()
+  def new(base_url, api_key, access_key) do
+    %Supabase.Connection{base_url: base_url, api_key: api_key, access_key: access_key}
   end
 
   @spec post(t(), String.t() | URI.t(), any, keyword) :: any
@@ -85,8 +84,9 @@ defmodule Supabase.Connection do
   defp decode(request, response, _options), do: decode(request, response)
   defp decode(request, response), do: Req.decode(request, response)
 
-  defp auth_headers(conn),
-    do: [{"authorization", "Bearer #{conn.api_key}"}, {"apikey", conn.api_key}]
+  defp auth_headers(conn) do
+    [{"authorization", "Bearer #{conn.access_key}"}, {"apikey", conn.api_key}]
+  end
 
   defp merge_headers(conn, headers) do
     headers =
