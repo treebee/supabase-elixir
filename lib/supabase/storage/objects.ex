@@ -137,7 +137,7 @@ defmodule Supabase.Storage.Objects do
 
     middleware = [
       {Tesla.Middleware.BaseUrl, conn.base_url},
-      {Tesla.Middleware.Headers, [{"Authorization", "Bearer #{conn.access_key}"}]}
+      {Tesla.Middleware.Headers, [{"Authorization", "Bearer #{conn.access_token}"}]}
     ]
 
     client = Tesla.client(middleware, {Tesla.Adapter.Finch, [name: Req.Finch]})

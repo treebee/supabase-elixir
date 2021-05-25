@@ -2,11 +2,11 @@ defmodule Supabase.Connection do
   @type t :: %__MODULE__{
           base_url: String.t(),
           api_key: String.t(),
-          access_key: String.t(),
+          access_token: String.t(),
           bucket: String.t()
         }
-  @enforce_keys [:base_url, :api_key, :access_key]
-  defstruct [:base_url, :api_key, :access_key, :bucket]
+  @enforce_keys [:base_url, :api_key, :access_token]
+  defstruct [:base_url, :api_key, :access_token, :bucket]
 
   @spec new :: t()
   def new() do
@@ -23,8 +23,8 @@ defmodule Supabase.Connection do
   end
 
   @spec new(String.t(), String.t(), String.t()) :: t()
-  def new(base_url, api_key, access_key) do
-    %Supabase.Connection{base_url: base_url, api_key: api_key, access_key: access_key}
+  def new(base_url, api_key, access_token) do
+    %Supabase.Connection{base_url: base_url, api_key: api_key, access_token: access_token}
   end
 
   @spec post(t(), String.t() | URI.t(), any, keyword) :: any
@@ -69,7 +69,10 @@ defmodule Supabase.Connection do
   def delete(%__MODULE__{} = conn, endpoint, body) when is_tuple(body) do
     url = conn.base_url |> URI.merge(endpoint)
 
-    Req.request!(:delete, url, headers: [{"Authorization", "Bearer #{conn.api_key}"}], body: body)
+    Req.request!(:delete, url,
+      headers: [{"Authorization", "Bearer #{conn.access_token}"}],
+      body: body
+    )
     |> parse_response()
   end
 
@@ -77,7 +80,7 @@ defmodule Supabase.Connection do
   def delete(%__MODULE__{} = conn, endpoint, id) do
     url = conn.base_url |> URI.merge(Path.join(endpoint, id))
 
-    Req.request!(:delete, url, headers: [{"Authorization", "Bearer #{conn.api_key}"}])
+    Req.request!(:delete, url, headers: [{"Authorization", "Bearer #{conn.access_token}"}])
     |> parse_response()
   end
 
@@ -99,7 +102,7 @@ defmodule Supabase.Connection do
   defp decode(request, response), do: Req.decode(request, response)
 
   defp auth_headers(conn) do
-    [{"authorization", "Bearer #{conn.access_key}"}, {"apikey", conn.api_key}]
+    [{"authorization", "Bearer #{conn.access_token}"}, {"apikey", conn.api_key}]
   end
 
   defp merge_headers(conn, headers) do
