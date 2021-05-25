@@ -33,7 +33,7 @@ defmodule Supabase.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:req, git: "https://github.com/wojtekmach/req.git", override: true},
+      {:finch, "~> 0.7.0"},
       {:mime, "~> 1.2"},
       {:tesla, "~> 1.4.1"},
       {:mint, "~> 1.3.0"},
