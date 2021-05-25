@@ -24,7 +24,7 @@ functionality for
 ```elixir
 def deps do
   [
-    {:supabase, github: "treebee/supabase-elixir"}
+    {:supabase, "~> 0.1.0"}
   ]
 end
 ```
