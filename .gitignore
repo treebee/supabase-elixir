@@ -25,3 +25,7 @@ supabase-*.tar
 
 # Temporary files for e.g. tests
 /tmp
+
+.env
+.env.development
+.env.test

@@ -37,7 +37,7 @@ defmodule Supabase.MixProject do
       {:tesla, "~> 1.4.1"},
       {:mint, "~> 1.3.0"},
       {:gotrue, "~> 0.2.0"},
-      {:postgrestex, "~> 0.1.1"},
+      {:postgrestex, "~> 0.1.2"},
       {:excoveralls, "~> 0.13", only: :test}
     ]
   end
