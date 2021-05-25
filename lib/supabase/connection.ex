@@ -15,6 +15,11 @@ defmodule Supabase.Connection do
     )
   end
 
+  @spec new(String.t(), String.t()) :: Supabase.Connection.t()
+  def new(base_url, api_key) do
+    new(base_url, api_key, api_key)
+  end
+
   @spec new(String.t(), String.t(), String.t()) :: t()
   def new(base_url, api_key, access_key) do
     %Supabase.Connection{base_url: base_url, api_key: api_key, access_key: access_key}

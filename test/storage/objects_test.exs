@@ -24,8 +24,9 @@ defmodule Supabase.Storage.ObjectsTest do
     {:ok, %{"name" => @bucket_name}} =
       case Buckets.create(conn, @bucket_name) do
         {:error, %{"error" => "Key (id)=(testbucket) already exists."}} ->
-          Buckets.delete_cascase(conn, @bucket_name)
-          Buckets.create(conn, @bucket_name)
+          Supabase.Storage.empty_bucket(conn, @bucket_name)
+          Supabase.Storage.delete_bucket(conn, @bucket_name)
+          Supabase.Storage.create_bucket(conn, @bucket_name)
 
         response ->
           response

@@ -44,6 +44,14 @@ defmodule Supabase do
     raise "This version of the storage API is not implemented yet"
   end
 
+  def storage(access_token) do
+    Supabase.Connection.new(
+      Application.fetch_env!(:supabase, :base_url),
+      Application.fetch_env!(:supabase, :api_key),
+      access_token
+    )
+  end
+
   @doc """
 
   """
