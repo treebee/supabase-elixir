@@ -127,7 +127,7 @@ defmodule Supabase.Storage.Objects do
   defp upload_file(conn, bucket_name, object_path, file, opts) do
     method = Keyword.get(opts, :method, :post)
 
-    # TODO: figure out how to get multipart working with Req/Finch to avoid the Tesla dependency
+    # TODO: figure out how to get multipart working with Finch to avoid the Tesla dependency
     mp =
       Tesla.Multipart.new()
       |> Tesla.Multipart.add_file(file,
@@ -140,7 +140,7 @@ defmodule Supabase.Storage.Objects do
       {Tesla.Middleware.Headers, [{"Authorization", "Bearer #{conn.access_token}"}]}
     ]
 
-    client = Tesla.client(middleware, {Tesla.Adapter.Finch, [name: Req.Finch]})
+    client = Tesla.client(middleware, {Tesla.Adapter.Finch, [name: Supabase.Finch]})
 
     resp =
       case method do

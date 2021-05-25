@@ -68,10 +68,10 @@ defmodule Supabase.Connection do
   def delete(%__MODULE__{} = conn, endpoint, body) when is_tuple(body) do
     url = conn.base_url |> URI.merge(endpoint)
 
-    Req.request!(:delete, url,
-      headers: [{"Authorization", "Bearer #{conn.access_token}"}],
-      body: body
-    )
+    Finch.build(:delete, url, [{"Authorization", "Bearer #{conn.access_token}"}], body)
+    |> encode()
+    |> Finch.request(Supabase.Finch)
+    |> decode([])
     |> parse_response()
   end
 
@@ -79,7 +79,9 @@ defmodule Supabase.Connection do
   def delete(%__MODULE__{} = conn, endpoint, id) do
     url = conn.base_url |> URI.merge(Path.join(endpoint, id))
 
-    Req.request!(:delete, url, headers: [{"Authorization", "Bearer #{conn.access_token}"}])
+    Finch.build(:delete, url, [{"Authorization", "Bearer #{conn.access_token}"}])
+    |> Finch.request(Supabase.Finch)
+    |> decode([])
     |> parse_response()
   end
 
@@ -89,9 +91,6 @@ defmodule Supabase.Connection do
       body -> response_model.new(body)
     end
   end
-
-  defp decode(%Req.Request{} = request, %Finch.Response{} = response),
-    do: Req.decode(request, response)
 
   defp decode({:ok, %Finch.Response{} = response}, options) do
     decode(response, options)
@@ -113,8 +112,6 @@ defmodule Supabase.Connection do
   defp decode(%Finch.Response{status: status, body: body}, _options) do
     %{status: status, body: Jason.decode!(body)}
   end
-
-  defp decode(request, response, _options), do: decode(request, response)
 
   defp auth_headers(conn) do
     [{"authorization", "Bearer #{conn.access_token}"}, {"apikey", conn.api_key}]
