@@ -56,7 +56,7 @@ defmodule Supabase.MixProject do
   defp package() do
     [
       name: "supabase",
-      licenses: "Apache-2.0",
+      licenses: ["Apache-2.0"],
       links: %{github: "https://github.com/treebee/supabase-elixir"},
       files: ~w(lib .formatter.exs mix.exs README* LICENSE*)
     ]
