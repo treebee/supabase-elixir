@@ -37,11 +37,8 @@ defmodule Supabase do
     |> GoTrue.client(api_key)
   end
 
-  @doc """
-  Entrypoint for implementing the same API the JS library does.
-  """
   def storage() do
-    raise "This version of the storage API is not implemented yet"
+    Supabase.Connection.new()
   end
 
   def storage(access_token) do

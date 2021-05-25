@@ -56,8 +56,25 @@ Supabase.init("https://my-project.supabase.co", "my-api-key")
 
 ## Storage
 
+The API tries to reflect the one of the offical [JS client](https://github.com/supabase/storage-js).
+
+```elixir
+{:ok, object} =
+  Supabase.storage()
+  |> Supabase.Storage.from("avatars")
+  |> Supabase.Storage.download("public/avatar1.png")
+
+# with user context
+{:ok, object} =
+  Supabase.storage(user.access_token)
+  |> Supabase.Storage.from("avatars")
+  |> Supabase.Storage.download("public/avatar1.png")
+
+```
+
+### Direct API
+
 Implements the [storage](https://supabase.io/storage) OpenAPI [spec](https://supabase.github.io/storage-api/#/), see examples below.
-Another API reflecting the one of the JS client will follow.
 
 ### Create a Connection
 
