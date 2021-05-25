@@ -22,9 +22,9 @@ defmodule Supabase.Storage do
 
   ## Example
 
-    {:ok, buckets} =
-      Supabase.storage(session.access_token)
-      |> Supabase.Storage.list_buckets()
+      {:ok, buckets} =
+        Supabase.storage(session.access_token)
+        |> Supabase.Storage.list_buckets()
 
   """
   def list_buckets(%Connection{} = conn) do
@@ -52,9 +52,9 @@ defmodule Supabase.Storage do
 
   ## Example
 
-    {:ok, bucket} =
-      Supabase.storage()
-      |> Supabase.Storage.get_bucket("avatars")
+      {:ok, bucket} =
+        Supabase.storage()
+        |> Supabase.Storage.get_bucket("avatars")
   """
   def get_bucket(%Connection{} = conn, id) do
     Buckets.get(conn, id)
@@ -80,8 +80,8 @@ defmodule Supabase.Storage do
 
   ## Example
 
-    Supabase.storage(session.access_token)
-    |> Supabase.Storage.create_bucket("avatars")
+      Supabase.storage(session.access_token)
+      |> Supabase.Storage.create_bucket("avatars")
 
   """
   def create_bucket(%Connection{} = conn, id) do
@@ -109,8 +109,8 @@ defmodule Supabase.Storage do
 
   ## Example
 
-    Supabase.storage(session.access_token)
-    |> Supabase.Storage.empty_bucket("avatars")
+      Supabase.storage(session.access_token)
+      |> Supabase.Storage.empty_bucket("avatars")
 
   """
   def empty_bucket(%Connection{} = conn, id) do
@@ -131,8 +131,8 @@ defmodule Supabase.Storage do
 
   ## Example
 
-    Supabase.storage()
-    |> Supabase.Storage.delete_bucket("avatars")
+      Supabase.storage()
+      |> Supabase.Storage.delete_bucket("avatars")
 
   """
   def delete_bucket(%Connection{} = conn, id) do
@@ -157,26 +157,26 @@ defmodule Supabase.Storage do
 
   ### Basic
 
-    Supabase.storage()
-    |> Supabase.Storage.from("avatars")
-    |> Supabase.Storage.upload("public/avatar1.png", "/local/path/to/avatar1.png")
+      Supabase.storage()
+      |> Supabase.Storage.from("avatars")
+      |> Supabase.Storage.upload("public/avatar1.png", "/local/path/to/avatar1.png")
 
   ### Phoenix Live Upload
 
-    def handle_event("save", _params, socket) do
-      uploaded_files =
-        consume_uploaded_entries(socket, :avatar, fn %{path: path}, entry ->
-          {:ok, %{"Key" => blob_key}} =
-            Supabase.storage(socket.assigns.access_token)
-            |> Supabase.Storage.from("avatars")
-            |> Supabase.Storage.upload(
-              "public/" <> entry.client_name, path, content_type: entry.client_type)
+      def handle_event("save", _params, socket) do
+        uploaded_files =
+          consume_uploaded_entries(socket, :avatar, fn %{path: path}, entry ->
+            {:ok, %{"Key" => blob_key}} =
+              Supabase.storage(socket.assigns.access_token)
+              |> Supabase.Storage.from("avatars")
+              |> Supabase.Storage.upload(
+                "public/" <> entry.client_name, path, content_type: entry.client_type)
 
-          blob_key
-        )
+            blob_key
+          )
 
-      {:noreply, assign(socket, uploaded_files: uploaded_files)}
-    end
+        {:noreply, assign(socket, uploaded_files: uploaded_files)}
+      end
 
   """
   def upload(%Connection{bucket: bucket} = conn, path, file, file_options \\ []) do
@@ -196,12 +196,12 @@ defmodule Supabase.Storage do
 
   ## Examples
 
-    {:ok, blob} =
-      Supabase.storage()
-      |> Supabase.Storage.from("avatars")
-      |> Supabase.Storage.download("public/avatar2.png")
+      {:ok, blob} =
+        Supabase.storage()
+        |> Supabase.Storage.from("avatars")
+        |> Supabase.Storage.download("public/avatar2.png")
 
-    File.write("/tmp/avatar2.png", blob)
+      File.write("/tmp/avatar2.png", blob)
 
   """
   def download(%Connection{bucket: bucket} = conn, path) do
@@ -227,9 +227,9 @@ defmodule Supabase.Storage do
 
   ## Example
 
-    Supabase.storage()
-    |> Supabase.Storage.from("avatars")
-    |> Supabase.Storage.list(path: "public")
+      Supabase.storage()
+      |> Supabase.Storage.from("avatars")
+      |> Supabase.Storage.list(path: "public")
 
   ## Options
 
@@ -252,9 +252,9 @@ defmodule Supabase.Storage do
 
   ## Example
 
-    Supabase.storage()
-    |> Supabase.Storage.from("avatars")
-    |> Supabase.Storage.update("public/avatar1.png", "/my/avatar/file.png")
+      Supabase.storage()
+      |> Supabase.Storage.from("avatars")
+      |> Supabase.Storage.update("public/avatar1.png", "/my/avatar/file.png")
 
   ## Options
 
@@ -276,9 +276,9 @@ defmodule Supabase.Storage do
 
   ## Example
 
-    Supabase.storage()
-    |> Supabase.Storage.from("avatars")
-    |> Supabase.Storage.move("public/avatar1.png", "private/avatar2.png")
+      Supabase.storage()
+      |> Supabase.Storage.from("avatars")
+      |> Supabase.Storage.move("public/avatar1.png", "private/avatar2.png")
 
   """
   def move(%Connection{bucket: bucket} = conn, from_path, to_path) do
@@ -292,13 +292,13 @@ defmodule Supabase.Storage do
 
     * Policy permissions required:
       * `buckets` permissions: none
-      * `objects` permissions: `delete` and `select
+      * `objects` permissions: `delete` and `select`
 
   ## Example
 
-    Supabase.storage()
-    |> Supabase.Storage.from("avatars")
-    |> Supabase.Storage.remove(["public/avatar1", "private/avatar2"])
+      Supabase.storage()
+      |> Supabase.Storage.from("avatars")
+      |> Supabase.Storage.remove(["public/avatar1", "private/avatar2"])
 
   """
   def remove(%Connection{bucket: bucket} = conn, paths) do
@@ -313,16 +313,15 @@ defmodule Supabase.Storage do
 
     * Policy permissions required:
       * `buckets` permissions: none
-      * `objects` permissions: `select
+      * `objects` permissions: `select`
 
   ## Example
 
-    Supabase.storage()
-    |> Supabase.Storage.from("avatars")
-    |> Supabase.Storage.create_signed_url("public/avatar1", 60)
+      Supabase.storage()
+      |> Supabase.Storage.from("avatars")
+      |> Supabase.Storage.create_signed_url("public/avatar1", 60)
 
   """
-
   def create_signed_url(%Connection{bucket: bucket} = conn, path, expires_in) do
     Objects.sign(conn, bucket, path, expires_in: expires_in)
   end

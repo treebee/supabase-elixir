@@ -8,7 +8,6 @@ defmodule Supabase.MixProject do
       description: "A Supabase client for Elixir",
       elixir: "~> 1.11",
       package: package(),
-      source_url: "https://github.com/treebee/supabase-elixir",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -18,6 +17,13 @@ defmodule Supabase.MixProject do
         "coveralls.detail": :test,
         "coveralls.post": :test,
         "coveralls.html": :test
+      ],
+      name: "Supabase",
+      source_url: "https://github.com/treebee/supabase-elixir",
+      homepage_url: "https://github.com/treebee/supabase-elixir",
+      docs: [
+        main: "Supabase",
+        extras: ["README.md"]
       ]
     ]
   end
@@ -39,7 +45,8 @@ defmodule Supabase.MixProject do
       {:mint, "~> 1.3.0"},
       {:gotrue, "~> 0.2.0"},
       {:postgrestex, "~> 0.1.2"},
-      {:excoveralls, "~> 0.13", only: :test}
+      {:excoveralls, "~> 0.13", only: :test},
+      {:ex_doc, "~> 0.24", only: :dev, runtime: false}
     ]
   end
 

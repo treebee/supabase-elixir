@@ -8,22 +8,22 @@ defmodule Supabase do
 
   Example
 
-    iex> Supabase.auth() |> GoTrue.settings()
-    %{
-      "autoconfirm" => false,
-      "disable_signup" => false,
-      "external" => %{
-        "azure" => false,
-        "bitbucket" => false,
-        "email" => true,
-        "facebook" => false,
-        "github" => true,
-        "gitlab" => false,
-        "google" => false,
-        "saml" => false
-    },
-      "external_labels" => %{}
-    }
+      iex> Supabase.auth() |> GoTrue.settings()
+      %{
+        "autoconfirm" => false,
+        "disable_signup" => false,
+        "external" => %{
+          "azure" => false,
+          "bitbucket" => false,
+          "email" => true,
+          "facebook" => false,
+          "github" => true,
+          "gitlab" => false,
+          "google" => false,
+          "saml" => false
+      },
+        "external_labels" => %{}
+      }
   """
   def auth() do
     {url, api_key} = connection_details()
@@ -37,10 +37,21 @@ defmodule Supabase do
     |> GoTrue.client(api_key)
   end
 
+  @doc "Entry point for the Storage API"
   def storage() do
     Supabase.Connection.new()
   end
 
+  @doc """
+  Entry point for the Storage API for usage in a user context
+
+  ## Example
+
+      Supabase.storage(access_token)
+      |> Supabase.Storage.from("avatars")
+      |> Supabase.Storage.download("avatar1.png")
+
+  """
   def storage(access_token) do
     Supabase.Connection.new(
       Application.fetch_env!(:supabase, :base_url),
@@ -50,6 +61,13 @@ defmodule Supabase do
   end
 
   @doc """
+  Entrypoint for the Postgrest library
+
+  ## Example
+
+      Supabase.init(access_token: jwt)
+      |> Postgrestex.from("profiles")
+      |> Postgrestex.call()
 
   """
   def init(options \\ []) do

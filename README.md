@@ -6,16 +6,50 @@ A Supabase client for Elixir.
 
 **Early work in progress.**
 
+With this library you can work with [Supabase](https://supabase.io). At the moment there's
+functionality for
+
+- **auth**
+- **database/postgrest**
+- **storage**
+
+**auth** and **database** are implemented in different libraries.
+[gotrue-elixir](https://github.com/joshnuss/gotrue-elixir) for **auth** and
+[postgrest-ex](https://github.com/J0/postgrest-ex) for **database**.
+
+**supabase-elixir** handles the correct initializtion from a common config.
+
+## Installation
+
+```elixir
+def deps do
+  [
+    {:supabase, github: "treebee/supabase-elixir"}
+  ]
+end
+```
+
+## Configuration
+
+You can configure your Supabase project url and api anon key so that **supabase-elixir**
+can handle the correct initialization of the different clients:
+
+```elixir
+config :supabase,
+  base_url: System.get_env("SUPABASE_URL"),
+  api_key: System.get_env("SUPABASE_KEY")
+```
+
 ## Auth / GoTrue
 
 Uses [gotrue-elixir](https://github.com/joshnuss/gotrue-elixir)
 
 ```elixir
-Supabase.auth("https://my-project.supabase.co", "my-api-key")
+Supabase.auth()
 |> GoTrue.settings()
 ```
 
-## Database
+## Database / Postgrest
 
 Uses [postgrest-ex](https://github.com/J0/postgrest-ex):
 
@@ -45,7 +79,7 @@ Supabase.init()
 Supabase.init(access_token: session.access_token)
 
 # To use another schema than 'public'
-Supabase.init('other_schema')
+Supabase.init(schema: 'other_schema')
 ```
 
 ### Not depending on Application config
@@ -124,27 +158,6 @@ iex> {:ok, objects} = Supabase.Storage.Objects.list(conn, bucket, "images")
      updated_at: "2021-04-30T16:53:46.41036+00:00"
    }
  ]}
-```
-
-### Auth (GoTrue)
-
-Directly uses [gotrue-elixir](https://github.com/joshnuss/gotrue-elixir) as
-
-```elixir
-Supabase.auth()
-
-# e.g.
-Supabase.auth().get_user("my-jwt-token")
-```
-
-## Installation
-
-```elixir
-def deps do
-  [
-    {:supabase, github: "treebee/supabase-elixir"}
-  ]
-end
 ```
 
 ## Testing
