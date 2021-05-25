@@ -24,7 +24,11 @@ defmodule Supabase.Connection do
 
   @spec new(String.t(), String.t(), String.t()) :: t()
   def new(base_url, api_key, access_token) do
-    %Supabase.Connection{base_url: base_url, api_key: api_key, access_token: access_token}
+    %Supabase.Connection{
+      base_url: base_url,
+      api_key: api_key,
+      access_token: access_token
+    }
   end
 
   @spec post(t(), String.t() | URI.t(), any, keyword) :: any
@@ -53,16 +57,13 @@ defmodule Supabase.Connection do
     url = URI.merge(conn.base_url, endpoint)
 
     headers = Keyword.get(options, :headers, [])
-    headers = merge_headers(conn, headers)
-    options = Keyword.put(options, :headers, headers)
+    headers = merge_headers(conn, headers) |> Map.to_list()
 
-    Req.build(:get, url, options)
-    |> Req.add_request_steps(request_steps(options))
-    |> Req.add_response_steps([
-      &Req.decompress/2,
-      &decode(&1, &2, options)
-    ])
-    |> Req.run()
+    url = apply_params(url, Keyword.get(options, :params))
+
+    Finch.build(:get, url, headers)
+    |> Finch.request(Supabase.Finch)
+    |> decode(options)
     |> parse_response()
   end
 
@@ -91,6 +92,30 @@ defmodule Supabase.Connection do
     end
   end
 
+  defp decode(%Req.Request{} = request, %Finch.Response{} = response),
+    do: Req.decode(request, response)
+
+  defp decode({:ok, %Finch.Response{} = response}, options) do
+    decode(response, options)
+  end
+
+  defp decode(%Finch.Response{status: status, body: body} = response, options)
+       when status < 300 do
+    with {_, content_type} <- List.keyfind(response.headers, "content-type", 0),
+         ["json"] <- MIME.extensions(content_type) do
+      case Keyword.get(options, :response_model) do
+        nil -> Jason.decode!(body)
+        response_model -> update_in(response.body, &decode_response(&1, response_model))
+      end
+    else
+      _ -> response
+    end
+  end
+
+  defp decode(%Finch.Response{status: status, body: body}, _options) do
+    %{status: status, body: Jason.decode!(body)}
+  end
+
   defp decode(request, %Finch.Response{status: status} = response, options) when status < 300 do
     case Keyword.get(options, :response_model) do
       nil -> decode(request, response)
@@ -99,7 +124,6 @@ defmodule Supabase.Connection do
   end
 
   defp decode(request, response, _options), do: decode(request, response)
-  defp decode(request, response), do: Req.decode(request, response)
 
   defp auth_headers(conn) do
     [{"authorization", "Bearer #{conn.access_token}"}, {"apikey", conn.api_key}]
@@ -120,10 +144,10 @@ defmodule Supabase.Connection do
 
   defp parse_response({_, resp}), do: parse_response(resp)
 
-  defp parse_response(%Finch.Response{body: body, status: status}) when status < 400,
+  defp parse_response(%{body: body, status: status}) when status < 400,
     do: {:ok, body}
 
-  defp parse_response(%Finch.Response{body: body}), do: {:error, body}
+  defp parse_response(%{body: body}), do: {:error, body}
 
   defp request_steps(options) do
     [
@@ -133,4 +157,7 @@ defmodule Supabase.Connection do
     ] ++
       maybe_steps(options[:params], [&Req.params(&1, options[:params])])
   end
+
+  defp apply_params(url, nil), do: url
+  defp apply_params(url, params), do: URI.to_string(url) <> "?" <> URI.encode_query(params)
 end
