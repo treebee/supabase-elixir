@@ -7,6 +7,7 @@ defmodule Supabase.Storage do
 
   alias Supabase.Connection
   alias Supabase.Storage.Buckets
+  alias Supabase.Storage.Objects
 
   @spec list_buckets(Supabase.Connection.t()) ::
           {:error, map} | {:ok, [Supabase.Storage.Bucket.t()]}
@@ -139,26 +140,190 @@ defmodule Supabase.Storage do
   end
 
   def from(%Connection{} = conn, id) do
+    %Connection{conn | bucket: id}
   end
 
-  def upload(%Connection{} = conn, path, file, file_options \\ []) do
+  @spec upload(Supabase.Connection.t(), binary, binary, keyword) :: {:error, map} | {:ok, map}
+  @doc """
+  Uploads a file to an existing bucket.
+
+  ## Notes
+
+    * Policy permissions required
+      * `buckets` permissions: none
+      * `objects` permissions: `insert`
+
+  ## Example
+
+  ### Basic
+
+    Supabase.storage()
+    |> Supabase.Storage.from("avatars")
+    |> Supabase.Storage.upload("public/avatar1.png", "/local/path/to/avatar1.png")
+
+  ### Phoenix Live Upload
+
+    def handle_event("save", _params, socket) do
+      uploaded_files =
+        consume_uploaded_entries(socket, :avatar, fn %{path: path}, entry ->
+          {:ok, %{"Key" => blob_key}} =
+            Supabase.storage(socket.assigns.access_token)
+            |> Supabase.Storage.from("avatars")
+            |> Supabase.Storage.upload(
+              "public/" <> entry.client_name, path, content_type: entry.client_type)
+
+          blob_key
+        )
+
+      {:noreply, assign(socket, uploaded_files: uploaded_files)}
+    end
+
+  """
+  def upload(%Connection{bucket: bucket} = conn, path, file, file_options \\ []) do
+    Objects.create(conn, bucket, path, file, file_options)
   end
 
-  def download(%Connection{} = conn, path) do
+  @spec download(Supabase.Connection.t(), binary | Supabase.Storage.Object.t()) ::
+          {:error, map} | {:ok, binary}
+  @doc """
+  Downloads a file.
+
+  ## Notes
+
+    * Policy permissions required:
+      * `buckets` permissions: none
+      * `objects` permissions: `select`
+
+  ## Examples
+
+    {:ok, blob} =
+      Supabase.storage()
+      |> Supabase.Storage.from("avatars")
+      |> Supabase.Storage.download("public/avatar2.png")
+
+    File.write("/tmp/avatar2.png", blob)
+
+  """
+  def download(%Connection{bucket: bucket} = conn, path) do
+    Objects.get(conn, bucket, path)
   end
 
-  def list(%Connection{} = conn, options \\ []) do
+  @spec download!(Supabase.Connection.t(), binary | Supabase.Storage.Object.t()) :: binary
+  def download!(%Connection{} = conn, path) do
+    case download(conn, path) do
+      {:ok, blob} -> blob
+      {:error, %{"error" => error}} -> raise error
+    end
   end
 
-  def update(%Connection{} = conn, path, file, file_options \\ []) do
+  @doc """
+  Lists all the files within a bucket.
+
+  ## Notes
+
+    * Policy permissions required:
+      * `buckets` permissions: none
+      * `objects` permissions: `select`
+
+  ## Example
+
+    Supabase.storage()
+    |> Supabase.Storage.from("avatars")
+    |> Supabase.Storage.list(path: "public")
+
+  ## Options
+
+    * `:path` - The folder path
+
+  """
+  def list(%Connection{bucket: bucket} = conn, options \\ []) do
+    path = Keyword.get(options, :path, "")
+    Objects.list(conn, bucket, path, options)
   end
 
-  def move(%Connection{} = conn, from_path, to_path) do
+  @doc """
+  Replaces an existing file at the specified path with a new one.
+
+  ## Notes
+
+    * Policy permissions required:
+      * `buckets` permissions: none
+      * `objects` permissions: `update` and `select`
+
+  ## Example
+
+    Supabase.storage()
+    |> Supabase.Storage.from("avatars")
+    |> Supabase.Storage.update("public/avatar1.png", "/my/avatar/file.png")
+
+  ## Options
+
+    HTTP headers, for example `:cache_control`
+
+  """
+  def update(%Connection{bucket: bucket} = conn, path, file, file_options \\ []) do
+    Objects.update(conn, bucket, path, file, file_options)
   end
 
-  def remove(%Connection{} = conn, paths) do
+  @doc """
+  Moves an existing file, optionally renaming it at the same time.
+
+  ## Notes
+
+    * Policy permissions required:
+      * `buckets` permissions: none
+      * `objects` permissions: `update` and `select`
+
+  ## Example
+
+    Supabase.storage()
+    |> Supabase.Storage.from("avatars")
+    |> Supabase.Storage.move("public/avatar1.png", "private/avatar2.png")
+
+  """
+  def move(%Connection{bucket: bucket} = conn, from_path, to_path) do
+    Objects.move(conn, bucket, from_path, to_path)
   end
 
-  def create_signed_url(%Connection{} = conn, path, expires_in) do
+  @doc """
+  Deletes files within the same bucket
+
+  ## Notes
+
+    * Policy permissions required:
+      * `buckets` permissions: none
+      * `objects` permissions: `delete` and `select
+
+  ## Example
+
+    Supabase.storage()
+    |> Supabase.Storage.from("avatars")
+    |> Supabase.Storage.remove(["public/avatar1", "private/avatar2"])
+
+  """
+  def remove(%Connection{bucket: bucket} = conn, paths) do
+    Objects.delete(conn, bucket, paths)
+  end
+
+  @doc """
+  Create signed url to download file without requiring permissions.
+  This URL can be valid for a set number of seconds.
+
+  ## Notes
+
+    * Policy permissions required:
+      * `buckets` permissions: none
+      * `objects` permissions: `select
+
+  ## Example
+
+    Supabase.storage()
+    |> Supabase.Storage.from("avatars")
+    |> Supabase.Storage.create_signed_url("public/avatar1", 60)
+
+  """
+
+  def create_signed_url(%Connection{bucket: bucket} = conn, path, expires_in) do
+    Objects.sign(conn, bucket, path, expires_in: expires_in)
   end
 end

@@ -2,9 +2,11 @@ defmodule Supabase.Connection do
   @type t :: %__MODULE__{
           base_url: String.t(),
           api_key: String.t(),
-          access_key: String.t()
+          access_key: String.t(),
+          bucket: String.t()
         }
-  defstruct [:base_url, :api_key, :access_key]
+  @enforce_keys [:base_url, :api_key, :access_key]
+  defstruct [:base_url, :api_key, :access_key, :bucket]
 
   @spec new :: t()
   def new() do
@@ -64,9 +66,16 @@ defmodule Supabase.Connection do
     |> parse_response()
   end
 
+  def delete(%__MODULE__{} = conn, endpoint, body) when is_tuple(body) do
+    url = conn.base_url |> URI.merge(endpoint)
+
+    Req.request!(:delete, url, headers: [{"Authorization", "Bearer #{conn.api_key}"}], body: body)
+    |> parse_response()
+  end
+
   @spec delete(Supabase.Connection.t(), String.t() | URI.t(), String.t()) :: any
   def delete(%__MODULE__{} = conn, endpoint, id) do
-    url = conn.base_url |> URI.merge(endpoint) |> URI.merge(id)
+    url = conn.base_url |> URI.merge(Path.join(endpoint, id))
 
     Req.request!(:delete, url, headers: [{"Authorization", "Bearer #{conn.api_key}"}])
     |> parse_response()

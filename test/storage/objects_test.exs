@@ -10,7 +10,10 @@ defmodule Supabase.Storage.ObjectsTest do
   @object_path "images/unsplash.jpg"
 
   defp create_object(conn) do
-    {:ok, %{"Key" => object_path}} = Objects.create(conn, @bucket_name, @object_path, @file_path)
+    {:ok, %{"Key" => "testbucket/" <> object_path}} =
+      Objects.create(conn, @bucket_name, @object_path, @file_path)
+
+    Process.sleep(200)
     object_path
   end
 
@@ -46,7 +49,11 @@ defmodule Supabase.Storage.ObjectsTest do
   end
 
   test "list objects", %{conn: conn, object_path: object_path} do
-    {:ok, objects} = Objects.list(conn, Path.dirname(object_path))
+    {:ok, objects} =
+      conn
+      |> Supabase.Storage.from(@bucket_name)
+      |> Supabase.Storage.list(path: Path.dirname(object_path))
+
     assert length(objects) == 1
     [object] = objects
     assert object.name == Path.basename(object_path)
@@ -54,32 +61,62 @@ defmodule Supabase.Storage.ObjectsTest do
   end
 
   test "get object", %{conn: conn, object_path: object_path} do
-    {:ok, object} = Objects.get(conn, object_path)
+    {:ok, object} =
+      conn
+      |> Supabase.Storage.from(@bucket_name)
+      |> Supabase.Storage.download(object_path)
+
     assert is_binary(object)
   end
 
   test "copy object", %{conn: conn, bucket: bucket, object_path: object_path} do
-    [_bucket_name, path] = String.split(object_path, "/", parts: 2)
-    {:ok, %{"Key" => dest}} = Objects.copy(conn, bucket, path, "my/copy/unsplash.jpg")
+    {:ok, %{"Key" => dest}} = Objects.copy(conn, bucket, object_path, "my/copy/unsplash.jpg")
     assert dest == "#{bucket.name}/my/copy/unsplash.jpg"
   end
 
   test "delete object", %{conn: conn, bucket: bucket, object_path: object_path} do
-    {:ok, %{"message" => message}} = Objects.delete(conn, bucket, object_path)
+    {:ok, %{"message" => message}} =
+      conn |> Supabase.Storage.from(bucket.name) |> Supabase.Storage.remove(object_path)
+
     assert message == "Successfully deleted"
     on_exit(fn -> create_object(conn) end)
   end
 
   test "generate presigned url", %{conn: conn, object_path: object_path} do
-    {:ok, %{"signedURL" => signed_url}} = Objects.sign(conn, object_path)
+    {:ok, %{"signedURL" => signed_url}} =
+      conn
+      |> Supabase.Storage.from(@bucket_name)
+      |> Supabase.Storage.create_signed_url(object_path, 60)
+
     assert signed_url =~ "token="
   end
 
   test "move object", %{conn: conn, bucket: bucket, object_path: object_path} do
-    [_bucket_name, path] = String.split(object_path, "/", parts: 2)
     new_path = "my/new/path/unsplash.jpg"
-    {:ok, _} = Objects.move(conn, bucket, path, new_path)
-    {:error, _} = Objects.get(conn, object_path)
-    {:ok, _} = Objects.move(conn, bucket, new_path, path)
+
+    {:ok, _} =
+      conn
+      |> Supabase.Storage.from(bucket.name)
+      |> Supabase.Storage.move(object_path, new_path)
+
+    {:error, _} = Objects.get(conn, bucket.name, object_path)
+    {:ok, _} = Objects.move(conn, bucket, new_path, object_path)
+  end
+
+  test "update file", %{conn: conn, object_path: object_path} do
+    {:ok, _} =
+      conn
+      |> Supabase.Storage.from(@bucket_name)
+      |> Supabase.Storage.update(object_path, @file_path)
+  end
+
+  test "remove files", %{conn: conn, object_path: path} do
+    {:ok, file_infos} =
+      conn
+      |> Supabase.Storage.from(@bucket_name)
+      |> Supabase.Storage.remove([path, "not/existent"])
+
+    assert length(file_infos) == 1
+    on_exit(fn -> create_object(conn) end)
   end
 end

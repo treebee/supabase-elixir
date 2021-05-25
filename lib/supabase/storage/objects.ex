@@ -5,20 +5,14 @@ defmodule Supabase.Storage.Objects do
 
   @endpoint "/storage/v1/object"
 
-  # TODO pagination
-  def list(conn, path) do
-    [bucket, path] = split_path(path)
-    list(conn, bucket, path)
-  end
-
-  @spec list(Connection.t(), String.t() | Bucket.t(), String.t()) ::
+  @spec list(Connection.t(), String.t() | Bucket.t(), String.t(), keyword()) ::
           {:ok, list(Object.t())} | {:error, map()}
-  def list(conn, bucket, folder)
+  def list(conn, bucket, folder, options \\ [])
 
-  def list(%Connection{} = conn, %Bucket{} = bucket, folder),
-    do: list(conn, bucket.name, folder)
+  def list(%Connection{} = conn, %Bucket{} = bucket, folder, options),
+    do: list(conn, bucket.name, folder, options)
 
-  def list(%Connection{} = conn, bucket, folder) do
+  def list(%Connection{} = conn, bucket, folder, options) do
     Connection.post(conn, "#{@endpoint}/list/#{bucket}", {:json, %{prefix: folder}},
       response_model: Object
     )
@@ -48,25 +42,7 @@ defmodule Supabase.Storage.Objects do
     do: create(conn, bucket.name, object_path, file, opts)
 
   def create(%Connection{} = conn, bucket_name, object_path, file, opts) do
-    # TODO: figure out how to get multipart working with Req/Finch to avoid the Tesla dependency
-    mp =
-      Tesla.Multipart.new()
-      |> Tesla.Multipart.add_file(file,
-        filename: object_path,
-        headers: [{"Content-Type", Keyword.get(opts, :content_type, MIME.from_path(file))}]
-      )
-
-    middleware = [
-      {Tesla.Middleware.BaseUrl, conn.base_url},
-      {Tesla.Middleware.Headers, [{"Authorization", "Bearer #{conn.api_key}"}]}
-    ]
-
-    client = Tesla.client(middleware, {Tesla.Adapter.Finch, [name: Req.Finch]})
-
-    case Tesla.post(client, "#{@endpoint}/#{Path.join([bucket_name, object_path])}", mp) do
-      {:ok, %Tesla.Env{body: body}} -> {:ok, Jason.decode!(body)}
-      {:error, error} -> {:error, error}
-    end
+    upload_file(conn, bucket_name, object_path, file, opts)
   end
 
   @spec copy(Connection.t(), Storage.Bucket.t(), String.t(), String.t()) ::
@@ -106,8 +82,12 @@ defmodule Supabase.Storage.Objects do
   def delete(%Connection{} = conn, %Bucket{} = bucket, object_path),
     do: delete(conn, bucket.name, object_path)
 
-  def delete(%Connection{} = conn, bucket_name, object_path) do
+  def delete(%Connection{} = conn, bucket_name, object_path) when is_binary(object_path) do
     Connection.delete(conn, "#{@endpoint}/#{bucket_name}", object_path)
+  end
+
+  def delete(%Connection{} = conn, bucket_name, object_paths) when is_list(object_paths) do
+    Connection.delete(conn, "#{@endpoint}/#{bucket_name}", {:json, %{prefixes: object_paths}})
   end
 
   @spec sign(Connection.t(), String.t()) :: {:error, map()} | {:ok, map()}
@@ -133,10 +113,44 @@ defmodule Supabase.Storage.Objects do
     )
   end
 
+  def update(%Connection{} = conn, bucket, path, file, opts) do
+    upload_file(conn, bucket, path, file, Keyword.put(opts, :method, :put))
+  end
+
   defp split_path(path) do
     case String.split(path, "/", parts: 2) do
       [bucket] -> [bucket, ""]
       [bucket, path] -> [bucket, path]
+    end
+  end
+
+  defp upload_file(conn, bucket_name, object_path, file, opts) do
+    method = Keyword.get(opts, :method, :post)
+
+    # TODO: figure out how to get multipart working with Req/Finch to avoid the Tesla dependency
+    mp =
+      Tesla.Multipart.new()
+      |> Tesla.Multipart.add_file(file,
+        filename: object_path,
+        headers: [{"Content-Type", Keyword.get(opts, :content_type, MIME.from_path(file))}]
+      )
+
+    middleware = [
+      {Tesla.Middleware.BaseUrl, conn.base_url},
+      {Tesla.Middleware.Headers, [{"Authorization", "Bearer #{conn.access_key}"}]}
+    ]
+
+    client = Tesla.client(middleware, {Tesla.Adapter.Finch, [name: Req.Finch]})
+
+    resp =
+      case method do
+        :post -> Tesla.post(client, "#{@endpoint}/#{Path.join([bucket_name, object_path])}", mp)
+        :put -> Tesla.put(client, "#{@endpoint}/#{Path.join([bucket_name, object_path])}", mp)
+      end
+
+    case resp do
+      {:ok, %Tesla.Env{body: body}} -> {:ok, Jason.decode!(body)}
+      {:error, error} -> {:error, error}
     end
   end
 end
