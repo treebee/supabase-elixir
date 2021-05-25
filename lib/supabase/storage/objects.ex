@@ -13,9 +13,9 @@ defmodule Supabase.Storage.Objects do
     do: list(conn, bucket.name, folder, options)
 
   def list(%Connection{} = conn, bucket, folder, options) do
-    Connection.post(conn, "#{@endpoint}/list/#{bucket}", {:json, %{prefix: folder}},
-      response_model: Object
-    )
+    body = %{prefix: folder}
+    body = apply_pagination(body, options)
+    Connection.post(conn, "#{@endpoint}/list/#{bucket}", {:json, body}, response_model: Object)
   end
 
   @spec get(Connection.t(), String.t()) :: {:error, map()} | {:ok, binary()}
@@ -151,6 +151,20 @@ defmodule Supabase.Storage.Objects do
     case resp do
       {:ok, %Tesla.Env{body: body}} -> {:ok, Jason.decode!(body)}
       {:error, error} -> {:error, error}
+    end
+  end
+
+  defp apply_pagination(body, options) do
+    body
+    |> maybe_option(options, :limit)
+    |> maybe_option(options, :offset)
+    |> maybe_option(options, :sortBy)
+  end
+
+  defp maybe_option(body, options, key) do
+    case options[key] do
+      nil -> body
+      value -> Map.put(body, key, value)
     end
   end
 end

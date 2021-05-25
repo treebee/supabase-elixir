@@ -119,4 +119,42 @@ defmodule Supabase.Storage.ObjectsTest do
     assert length(file_infos) == 1
     on_exit(fn -> create_object(conn) end)
   end
+
+  test "pagination", %{conn: conn} do
+    {:ok, _} = conn |> Supabase.Storage.create_bucket("pagination")
+
+    {:ok, _} =
+      conn
+      |> Supabase.Storage.from("pagination")
+      |> Supabase.Storage.upload("image1.jpg", @file_path)
+
+    {:ok, _} =
+      conn
+      |> Supabase.Storage.from("pagination")
+      |> Supabase.Storage.upload("image2.jpg", @file_path)
+
+    {:ok, objects} =
+      conn |> Supabase.Storage.from("pagination") |> Supabase.Storage.list(limit: 1)
+
+    assert length(objects) == 1
+
+    {:ok, objects} =
+      conn |> Supabase.Storage.from("pagination") |> Supabase.Storage.list(offset: 1)
+
+    assert length(objects) == 1
+
+    {:ok, objects} =
+      conn
+      |> Supabase.Storage.from("pagination")
+      |> Supabase.Storage.list(sortBy: %{column: "name", order: "desc"})
+
+    assert length(objects) == 2
+    [obj1 | _obj2] = objects
+    assert obj1.name == "image2.jpg"
+
+    on_exit(fn ->
+      Supabase.Storage.empty_bucket(conn, "pagination")
+      Supabase.Storage.delete_bucket(conn, "pagination")
+    end)
+  end
 end
