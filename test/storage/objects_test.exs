@@ -46,7 +46,6 @@ defmodule Supabase.Storage.ObjectsTest do
     Map.put(context, :conn, conn)
     |> Map.put(:bucket, bucket)
     |> Map.put(:object_path, object_path)
-    |> IO.inspect()
   end
 
   test "list objects", %{conn: conn, object_path: object_path} do

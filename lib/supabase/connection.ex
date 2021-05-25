@@ -34,21 +34,19 @@ defmodule Supabase.Connection do
   @spec post(t(), String.t() | URI.t(), any, keyword) :: any
   def post(%__MODULE__{} = conn, endpoint, body, options \\ []) do
     headers = Keyword.get(options, :headers, [])
-    headers = merge_headers(conn, headers)
-    options = Keyword.put(options, :headers, headers)
+    headers = merge_headers(conn, headers) |> Map.to_list()
 
-    Req.build(
+    url = apply_params(URI.merge(conn.base_url, endpoint), Keyword.get(options, :params))
+
+    Finch.build(
       :post,
-      URI.merge(conn.base_url, endpoint),
-      body: body,
-      headers: headers
+      url,
+      headers,
+      body
     )
-    |> Req.add_request_steps(request_steps(options))
-    |> Req.add_response_steps([
-      &Req.decompress/2,
-      &decode(&1, &2, options)
-    ])
-    |> Req.run()
+    |> encode()
+    |> Finch.request(Supabase.Finch)
+    |> decode(options)
     |> parse_response()
   end
 
@@ -104,7 +102,7 @@ defmodule Supabase.Connection do
     with {_, content_type} <- List.keyfind(response.headers, "content-type", 0),
          ["json"] <- MIME.extensions(content_type) do
       case Keyword.get(options, :response_model) do
-        nil -> Jason.decode!(body)
+        nil -> %Finch.Response{status: status, body: Jason.decode!(body)}
         response_model -> update_in(response.body, &decode_response(&1, response_model))
       end
     else
@@ -114,13 +112,6 @@ defmodule Supabase.Connection do
 
   defp decode(%Finch.Response{status: status, body: body}, _options) do
     %{status: status, body: Jason.decode!(body)}
-  end
-
-  defp decode(request, %Finch.Response{status: status} = response, options) when status < 300 do
-    case Keyword.get(options, :response_model) do
-      nil -> decode(request, response)
-      response_model -> {request, update_in(response.body, &decode_response(&1, response_model))}
-    end
   end
 
   defp decode(request, response, _options), do: decode(request, response)
@@ -138,10 +129,6 @@ defmodule Supabase.Connection do
     Map.merge(Map.new(auth_headers(conn)), headers)
   end
 
-  defp maybe_steps(nil, _step), do: []
-  defp maybe_steps(false, _step), do: []
-  defp maybe_steps(_, steps), do: steps
-
   defp parse_response({_, resp}), do: parse_response(resp)
 
   defp parse_response(%{body: body, status: status}) when status < 400,
@@ -149,15 +136,36 @@ defmodule Supabase.Connection do
 
   defp parse_response(%{body: body}), do: {:error, body}
 
-  defp request_steps(options) do
-    [
-      &Req.normalize_headers/1,
-      &Req.default_headers/1,
-      &Req.encode/1
-    ] ++
-      maybe_steps(options[:params], [&Req.params(&1, options[:params])])
-  end
-
   defp apply_params(url, nil), do: url
   defp apply_params(url, params), do: URI.to_string(url) <> "?" <> URI.encode_query(params)
+
+  # taken from https://github.com/wojtekmach/req/blob/main/lib/req.ex#L453
+  defp encode(request) do
+    case request.body do
+      {:form, data} ->
+        request
+        |> Map.put(:body, URI.encode_query(data))
+        |> put_new_header("content-type", "application/x-www-form-urlencoded")
+
+      {:json, data} ->
+        request
+        |> Map.put(:body, Jason.encode_to_iodata!(data))
+        |> put_new_header("content-type", "application/json")
+
+      _other ->
+        request
+    end
+  end
+
+  defp put_new_header(struct, name, value) do
+    if Enum.any?(struct.headers, fn {key, _} -> String.downcase(key) == name end) do
+      struct
+    else
+      put_header(struct, name, value)
+    end
+  end
+
+  defp put_header(struct, name, value) do
+    update_in(struct.headers, &[{name, value} | &1])
+  end
 end
