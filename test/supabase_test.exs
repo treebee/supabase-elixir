@@ -5,10 +5,12 @@ defmodule SupabaseTest do
   import Postgrestex
 
   test "postgrest integration" do
+    Application.put_env(:supabase, :base_url, System.get_env("SUPABASE_TEST_URL"))
+    Application.put_env(:supabase, :api_key, System.get_env("SUPABASE_TEST_KEY"))
+    # Supabase.init(System.get_env("SUPABASE_TEST_URL"), System.get_env("SUPABASE_TEST_KEY"))
     response =
-      Supabase.init(System.get_env("SUPABASE_TEST_URL"), System.get_env("SUPABASE_TEST_KEY"))
+      Supabase.rest()
       |> from("profiles")
-      |> call()
       |> json()
 
     assert response.status == 200

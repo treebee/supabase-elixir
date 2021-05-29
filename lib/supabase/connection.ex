@@ -1,4 +1,6 @@
 defmodule Supabase.Connection do
+  @moduledoc false
+
   @type t :: %__MODULE__{
           base_url: String.t(),
           api_key: String.t(),

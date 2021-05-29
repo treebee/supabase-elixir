@@ -4,8 +4,6 @@ A Supabase client for Elixir.
 
 [![.github/workflows/ci.yml](https://github.com/treebee/supabase-elixir/actions/workflows/ci.yml/badge.svg)](https://github.com/treebee/supabase-elixir/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/treebee/supabase-elixir/badge.svg?branch=main)](https://coveralls.io/github/treebee/supabase-elixir?branch=main)
 
-**Early work in progress.**
-
 With this library you can work with [Supabase](https://supabase.io). At the moment there's
 functionality for
 
@@ -57,10 +55,9 @@ Uses [postgrest-ex](https://github.com/J0/postgrest-ex):
 import Supabase
 import Postgrestex
 
-Supabase.init()
+Supabase.rest()
 |> from("profiles")
 |> eq("Username", "Patrick")
-|> call()
 |> json()
 %{
   body: [
@@ -76,10 +73,10 @@ Supabase.init()
 }
 
 # Or when in a user context with available JWT
-Supabase.init(access_token: session.access_token)
+Supabase.rest(session.access_token)
 
 # To use another schema than 'public'
-Supabase.init(schema: 'other_schema')
+Supabase.rest(schema: 'other_schema')
 ```
 
 ### Not depending on Application config

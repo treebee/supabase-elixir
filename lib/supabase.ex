@@ -1,6 +1,45 @@
 defmodule Supabase do
   @moduledoc """
   Elixir library for `Supabase`.
+
+  Combines Supabase Auth, provided by [gotrue-elixir](https://github.com/joshnuss/gotrue-elixir),
+  Supabase Database/Rest, via [postgrestex](https://github.com/J0/postgrest-ex), and Supabase
+  Storage, implemented in this library.
+
+  Once you configured your application
+
+      config :supabase,
+        base_url: <supabase-url>
+        api_key: <supabase-anon-key>
+
+  you can initiate the usage of the different services with
+
+  ## Auth
+
+      Supabase.auth()
+      |> GoTrue.get_user(access_token)
+
+  ## Database
+
+      Supabase.rest(access_token)
+      |> Postgrestex.from("profiles")
+      |> Postgrestex.eq("user_id", "1")
+      |> Postgrestex.call()
+
+  Instead of `Postgrestex.call()`, `supabase-elixir` provides a `Supabase.json/2` function
+  to directly parse the response to a map or struct.
+
+      Supabase.rest(access_token)
+      |> Postgrestex.from("profiles")
+      |> Postgrestex.eq("user_id", "1")
+      |> Supabase.json(keys: :atoms)
+
+  ## Storage
+
+      Supabase.storage(access_token)
+      |> Supabase.Storage.from("avatars")
+      |> Supabase.Storage.list()
+
   """
 
   @doc """
@@ -65,11 +104,25 @@ defmodule Supabase do
 
   ## Example
 
-      Supabase.init(access_token: jwt)
+      Supabase.rest(access_token)
       |> Postgrestex.from("profiles")
       |> Postgrestex.call()
 
   """
+  def rest() do
+    init()
+  end
+
+  def rest(access_token) when is_binary(access_token) do
+    init(access_token: access_token)
+  end
+
+  def rest(options), do: init(options)
+
+  def rest(access_token, options) do
+    init(Keyword.put(options, :access_token, access_token))
+  end
+
   def init(options \\ []) do
     {url, api_key} = connection_details()
     init(url, api_key, options)
@@ -98,6 +151,16 @@ defmodule Supabase do
 
   def json(%HTTPoison.Response{body: body, status_code: status}, options) do
     %{body: decode_body(body, options), status: status}
+  end
+
+  @spec json(map(), keyword()) :: %{
+          body: map() | list(),
+          status: integer()
+        }
+  def json(request, options) do
+    request
+    |> Postgrestex.call()
+    |> json(options)
   end
 
   defp decode_body(body, options) do

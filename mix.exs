@@ -22,7 +22,7 @@ defmodule Supabase.MixProject do
       source_url: "https://github.com/treebee/supabase-elixir",
       homepage_url: "https://github.com/treebee/supabase-elixir",
       docs: [
-        main: "readme",
+        main: "Supabase",
         extras: ["README.md"]
       ]
     ]
