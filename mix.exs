@@ -4,7 +4,7 @@ defmodule Supabase.MixProject do
   def project do
     [
       app: :supabase,
-      version: "0.1.0",
+      version: "0.2.0",
       description: "A Supabase client for Elixir",
       elixir: "~> 1.11",
       package: package(),
