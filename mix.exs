@@ -4,7 +4,7 @@ defmodule Supabase.MixProject do
   def project do
     [
       app: :supabase,
-      version: "0.2.1",
+      version: "0.2.2",
       description: "A Supabase client for Elixir",
       elixir: "~> 1.11",
       package: package(),
@@ -39,12 +39,13 @@ defmodule Supabase.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:finch, "~> 0.7.0"},
-      {:mime, "~> 1.2"},
+      {:finch, "~> 0.8.0"},
+      {:mime, ">= 1.2.0"},
       {:tesla, "~> 1.4.1"},
       {:mint, "~> 1.3.0"},
       {:gotrue, "~> 0.2.1"},
       {:postgrestex, "~> 0.1.2"},
+      {:realtime_client, "~> 0.1.0"},
       {:excoveralls, "~> 0.13", only: :test},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false}
     ]
