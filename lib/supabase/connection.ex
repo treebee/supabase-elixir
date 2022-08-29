@@ -89,7 +89,7 @@ defmodule Supabase.Connection do
 
   defp decode_response(body, response_model) do
     case Jason.decode!(body, keys: :atoms) do
-      [_ | _] = body -> Enum.map(body, &response_model.new/1)
+      body when is_list(body) -> Enum.map(body, &response_model.new/1)
       body -> response_model.new(body)
     end
   end
