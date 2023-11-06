@@ -44,7 +44,6 @@ defmodule Supabase.MixProject do
       {:tesla, "~> 1.8.0"},
       {:gotrue, "~> 0.2.1"},
       {:postgrestex, "~> 0.1.2"},
-      {:realtime_client, "~> 0.1.0", optional: true},
       {:excoveralls, "~> 0.18", only: :test},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false}
     ]
