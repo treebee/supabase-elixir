@@ -39,14 +39,13 @@ defmodule Supabase.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:finch, "~> 0.8.0"},
+      {:finch, "~> 0.16.0"},
       {:mime, ">= 1.2.0"},
-      {:tesla, "~> 1.4.1"},
-      {:mint, "~> 1.3.0"},
+      {:tesla, "~> 1.8.0"},
       {:gotrue, "~> 0.2.1"},
       {:postgrestex, "~> 0.1.2"},
-      {:realtime_client, "~> 0.1.0"},
-      {:excoveralls, "~> 0.13", only: :test},
+      {:realtime_client, "~> 0.1.0", optional: true},
+      {:excoveralls, "~> 0.18", only: :test},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false}
     ]
   end
