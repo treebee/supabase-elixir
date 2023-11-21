@@ -18,11 +18,7 @@ defmodule Supabase.Storage.ObjectsTest do
   end
 
   setup_all context do
-    conn =
-      Supabase.Connection.new(
-        System.get_env("SUPABASE_TEST_URL"),
-        System.get_env("SUPABASE_TEST_KEY")
-      )
+    conn = Supabase.TestHelper.connection()
 
     {:ok, %{"name" => @bucket_name}} =
       case Buckets.create(conn, @bucket_name) do
