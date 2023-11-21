@@ -6,11 +6,7 @@ defmodule Supabase.Storage.BucketsTest do
   @bucket_name "testbucket"
 
   setup_all context do
-    conn =
-      Supabase.Connection.new(
-        System.get_env("SUPABASE_TEST_URL"),
-        System.get_env("SUPABASE_TEST_KEY")
-      )
+    conn = Supabase.TestHelper.connection()
 
     {:ok, %{"name" => @bucket_name}} = Storage.create_bucket(conn, @bucket_name)
     # always clean up our test bucket
