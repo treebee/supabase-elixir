@@ -100,8 +100,23 @@ defmodule Supabase.Storage.Objects do
           {:error, map()} | {:ok, map()}
   def sign(conn, bucket, object_path, opts \\ [])
 
-  def sign(%Connection{} = conn, %Bucket{} = bucket, object_path, opts),
-    do: sign(conn, bucket.name, object_path, opts)
+  def sign(%Connection{} = conn, %Bucket{} = bucket, object_path, opts)
+      when is_binary(object_path),
+      do: sign(conn, bucket.name, object_path, opts)
+
+  def sign(%Connection{} = conn, %Bucket{} = bucket, object_paths, opts)
+      when is_list(object_paths),
+      do: sign(conn, bucket.name, object_paths, opts)
+
+  def sign(%Connection{} = conn, bucket_name, object_paths, opts) when is_list(object_paths) do
+    expires_in = Keyword.get(opts, :expires_in, 60_000)
+
+    Connection.post(
+      conn,
+      "#{@endpoint}/sign/#{bucket_name}",
+      {:json, %{expiresIn: expires_in, paths: object_paths}}
+    )
+  end
 
   def sign(%Connection{} = conn, bucket_name, object_path, opts) do
     expires_in = Keyword.get(opts, :expires_in, 60_000)

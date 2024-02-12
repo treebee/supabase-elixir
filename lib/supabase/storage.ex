@@ -325,4 +325,26 @@ defmodule Supabase.Storage do
   def create_signed_url(%Connection{bucket: bucket} = conn, path, expires_in) do
     Objects.sign(conn, bucket, path, expires_in: expires_in)
   end
+
+  @doc """
+  Create signed urls for multiple paths at once to download
+  file without requiring permissions.
+  These URLs can be valid for a set number of seconds.
+
+  ## Notes
+
+    * Policy permissions required:
+      * `buckets` permissions: none
+      * `objects` permissions: `select`
+
+  ## Example
+
+      Supabase.storage()
+      |> Supabase.Storage.from("avatars")
+      |> Supabase.Storage.create_signed_urls(["public/avatar1", "public/avatar2], 60)
+  """
+  def create_signed_urls(%Connection{bucket: bucket} = conn, paths, expires_in)
+      when is_list(paths) do
+    Objects.sign(conn, bucket, paths, expires_in: expires_in)
+  end
 end

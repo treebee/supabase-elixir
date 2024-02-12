@@ -8,6 +8,7 @@ defmodule Supabase.Storage.ObjectsTest do
   @bucket_name "testbucket"
   @file_path "test/data/galen-crout-8skNUw3Z1FA-unsplash.jpg"
   @object_path "images/unsplash.jpg"
+  @second_path "more_images/unsplash.jpg"
 
   defp create_object(conn) do
     {:ok, %{"Key" => "testbucket/" <> object_path}} =
@@ -17,12 +18,20 @@ defmodule Supabase.Storage.ObjectsTest do
     object_path
   end
 
+  defp create_object(conn, destination_path, source_path) do
+    {:ok, %{"Key" => @bucket_name <> "/" <> destination_path}} =
+      Objects.create(conn, @bucket_name, destination_path, source_path)
+
+    Process.sleep(200)
+    destination_path
+  end
+
   setup_all context do
     conn = Supabase.TestHelper.connection()
 
     {:ok, %{"name" => @bucket_name}} =
       case Buckets.create(conn, @bucket_name) do
-        {:error, %{"error" => "Key (id)=(testbucket) already exists."}} ->
+        {:error, %{"error" => "Duplicate"}} ->
           Supabase.Storage.empty_bucket(conn, @bucket_name)
           Supabase.Storage.delete_bucket(conn, @bucket_name)
           Supabase.Storage.create_bucket(conn, @bucket_name)
@@ -33,6 +42,8 @@ defmodule Supabase.Storage.ObjectsTest do
 
     {:ok, bucket} = Buckets.get(conn, @bucket_name)
     object_path = create_object(conn)
+    second_path = create_object(conn, @second_path, @file_path)
+    paths_list = [object_path, second_path]
 
     # always clean up our test bucket
     on_exit(fn ->
@@ -42,6 +53,7 @@ defmodule Supabase.Storage.ObjectsTest do
     Map.put(context, :conn, conn)
     |> Map.put(:bucket, bucket)
     |> Map.put(:object_path, object_path)
+    |> Map.put(:paths_list, paths_list)
   end
 
   test "list objects", %{conn: conn, object_path: object_path} do
@@ -85,6 +97,16 @@ defmodule Supabase.Storage.ObjectsTest do
       |> Supabase.Storage.create_signed_url(object_path, 60)
 
     assert signed_url =~ "token="
+  end
+
+  test "generage presigned urls", %{conn: conn, paths_list: paths} do
+    {:ok, infos} =
+      conn
+      |> Supabase.Storage.from(@bucket_name)
+      |> Supabase.Storage.create_signed_urls(paths, 60)
+
+    assert length(infos) == 2
+    %{"error" => nil, "signedURL" => "/" <> _} = hd(infos)
   end
 
   test "move object", %{conn: conn, bucket: bucket, object_path: object_path} do
