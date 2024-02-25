@@ -1,3 +1,5 @@
+> :warning: For using Supabase with Elixir, consider using the actively maintained https://github.com/zoedsoupe/supabase-ex
+
 # Supabase
 
 A Supabase client for Elixir.
